@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strid's Focus – EXIF-viewer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --purple:#b732ac; --blue:#67bde5; --orange:#d37337;
+  --lime:#9fbb3d; --green:#459a4f; --gray:#817870;
+  --bg:#fdf6f0; --surface:#ffffff; --text:#1f1a17;
+  --muted:#7a6f6a; --border:#ecddd5; --radius:16px;
+  --vf-bg:#15120f; --vf-panel:#221d18; --vf-green:#b6d957;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+header{
+  background:linear-gradient(135deg,#fff8f4 0%,#fff3ee 100%);
+  border-bottom:1px solid var(--border);
+  padding:0 28px;display:flex;align-items:center;gap:16px;
+  height:76px;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(183,50,172,.08);
+}
+.logo-wrap{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.logo-svg{width:46px;height:46px}
+.brand-name{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--purple);letter-spacing:-.01em}
+.brand-sub{font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
+.header-right{margin-left:auto;font-size:.85rem;color:var(--muted);font-weight:500}
+
+/* ── LAYOUT ── */
+.wrap{max-width:760px;margin:0 auto;padding:36px 20px 80px}
+.hero{margin-bottom:28px;text-align:center}
+.hero h1{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;margin-bottom:8px}
+.hero p{color:var(--muted);font-size:.95rem;max-width:480px;margin:0 auto}
+
+/* ── DROPZONE (viewfinder style) ── */
+.dropzone{
+  position:relative;border-radius:18px;background:var(--vf-bg);
+  min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;overflow:hidden;border:1px solid #2c2520;
+  transition:border-color .15s,transform .15s;
+}
+.dropzone:hover{transform:translateY(-2px)}
+.dropzone.dragover{border-color:var(--vf-green)}
+.dropzone input{display:none}
+.corner{position:absolute;width:34px;height:34px;border-color:var(--vf-green)}
+.corner.tl{top:18px;left:18px;border-top:3px solid;border-left:3px solid;border-radius:6px 0 0 0}
+.corner.tr{top:18px;right:18px;border-top:3px solid;border-right:3px solid;border-radius:0 6px 0 0}
+.corner.bl{bottom:18px;left:18px;border-bottom:3px solid;border-left:3px solid;border-radius:0 0 0 6px}
+.corner.br{bottom:18px;right:18px;border-bottom:3px solid;border-right:3px solid;border-radius:0 0 6px 0}
+.dz-content{text-align:center;color:#cfc8be;padding:0 24px}
+.dz-icon{font-size:2.6rem;margin-bottom:10px}
+.dz-title{font-size:1.05rem;font-weight:600;color:#fff;margin-bottom:4px}
+.dz-sub{font-size:.82rem;color:#9d958b}
+
+/* ── RESULT VIEW ── */
+.result{display:none}
+.result.visible{display:block}
+
+.photo-frame{
+  position:relative;border-radius:18px;overflow:hidden;background:var(--vf-bg);
+  margin-bottom:0;
+}
+.photo-frame img{display:block;width:100%;max-height:480px;object-fit:contain;background:#000}
+
+/* LCD readout bar */
+.readout{
+  background:var(--vf-bg);border-radius:0 0 18px 18px;
+  display:grid;grid-template-columns:repeat(4,1fr);
+  padding:18px 8px;gap:4px;
+}
+.ro-item{text-align:center;padding:6px 4px;border-right:1px solid #2c2520}
+.ro-item:last-child{border-right:none}
+.ro-val{font-family:'Space Mono',monospace;font-size:1.25rem;font-weight:700;color:var(--vf-green);letter-spacing:.02em}
+.ro-label{font-size:.65rem;color:#9d958b;text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
+
+/* details grid */
+.details{margin-top:24px;display:grid;gap:16px}
+.dgroup{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+.dgroup h3{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:12px;color:var(--purple)}
+.drow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:.88rem}
+.drow:last-child{border-bottom:none}
+.drow .dl{color:var(--muted)}
+.drow .dv{font-family:'Space Mono',monospace;font-weight:700;text-align:right}
+
+.empty-exif{
+  margin-top:20px;background:#fdf2e9;border:1px solid #f3dcc8;border-radius:var(--radius);
+  padding:18px 20px;font-size:.88rem;color:#8a5a2e;text-align:center;line-height:1.6;
+}
+
+.actions{margin-top:24px;text-align:center}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--surface);border:1.5px solid var(--border);border-radius:99px;
+  padding:10px 22px;font-size:.88rem;font-weight:600;cursor:pointer;
+  color:var(--text);transition:all .15s;
+}
+.btn:hover{background:var(--purple);color:#fff;border-color:var(--purple)}
+
+@media(max-width:560px){
+  .ro-item{font-size:.9rem}
+  .ro-val{font-size:1rem}
+  .header-right{display:none}
+  .hero h1{font-size:1.5rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="222 66 384 434">
+      <defs>
+        <mask id="strid-cut" maskUnits="userSpaceOnUse" x="222" y="66" width="384" height="434">
+          <rect x="222" y="66" width="384" height="434" fill="#fff"/>
+          <g transform="translate(231.874,-130.394)" fill="#000" stroke="#000" stroke-width="2">
+            <g><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.1 467.18 L107.16 467.18 L0 574.33 L0 595.28 Z"/></g>
+            <g transform="translate(449.652,49.897) rotate(60.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.28 466.99 L107.31 466.99 L0 574.3 L0 595.28 Z"/></g>
+            <g transform="translate(630.717,463.005) rotate(120)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L127.64 467.63 L106.77 467.63 L0 574.41 L0 595.28 Z"/></g>
+            <g transform="translate(365.565,826.193) rotate(179.7)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L126.6 468.68 L105.9 468.68 L0 574.58 L0 595.28 Z"/></g>
+            <g transform="translate(-84.9791,778.186) rotate(-120.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.08 467.2 L107.14 467.2 L0 574.34 L0 595.28 Z"/></g>
+            <g transform="translate(-267.486,365.713) rotate(-60.2)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L129.27 466 L108.14 466 L0 574.14 L0 595.28 Z"/></g>
+          </g>
+        </mask>
+      </defs>
+      <g mask="url(#strid-cut)"><g transform="translate(231.874,-130.394)">
+        <g fill="#b732ac" stroke="#b732ac" stroke-width="0.25">
+          <path transform="translate(9.35432,-124.256)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#67bde5" stroke="#67bde5" stroke-width="0.25" transform="translate(449.652,49.897) rotate(60.1)">
+          <path transform="translate(9.21649,-124.257)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#d37337" stroke="#d37337" stroke-width="0.25" transform="translate(630.717,463.005) rotate(120)">
+          <path transform="translate(9.39314,-124.115)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#9fbb3d" stroke="#9fbb3d" stroke-width="0.25" transform="translate(365.565,826.193) rotate(179.7)">
+          <path transform="translate(9.34106,-124.265)" d="M0 595.28 L108.85 595.28 L20.62 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#459a4f" stroke="#459a4f" stroke-width="0.25" transform="translate(-84.9791,778.186) rotate(-120.1)">
+          <path transform="translate(9.35409,-124.421)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#817870" stroke="#817870" stroke-width="0.25" transform="translate(-267.486,365.713) rotate(-60.2)">
+          <path transform="translate(9.27977,-124.051)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+      </g></g>
+    </svg>
+    <div>
+      <div class="brand-name">Strid's Focus</div>
+      <div class="brand-sub">EXIF-viewer</div>
+    </div>
+  </div>
+  <div class="header-right">Bekijk de cameragegevens van je foto's</div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Wat zat er achter deze foto?</h1>
+    <p>Sleep een foto hierheen of klik om je camera-instellingen te bekijken: diafragma, sluitertijd, ISO, brandpuntsafstand en meer.</p>
+  </div>
+
+  <div class="dropzone" id="dropzone">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+    <div class="dz-content">
+      <div class="dz-icon">📷</div>
+      <div class="dz-title">Sleep een foto hierheen</div>
+      <div class="dz-sub">of klik om te bladeren (JPEG met EXIF-data werkt het best)</div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*">
+  </div>
+
+  <div class="result" id="result">
+    <div class="photo-frame">
+      <img id="preview" alt="Voorbeeld">
+    </div>
+    <div class="readout" id="readout"></div>
+
+    <div class="details" id="details"></div>
+
+    <div class="actions">
+      <button class="btn" id="resetBtn">↺ Andere foto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const result = document.getElementById('result');
+const preview = document.getElementById('preview');
+const readout = document.getElementById('readout');
+const details = document.getElementById('details');
+const resetBtn = document.getElementById('resetBtn');
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
+resetBtn.addEventListener('click', () => {
+  result.classList.remove('visible');
+  dropzone.style.display = 'flex';
+  fileInput.value = '';
+  if (preview.src) URL.revokeObjectURL(preview.src);
+});
+
+function handleFile(file){
+  if (!file.type.startsWith('image/')) return;
+  const url = URL.createObjectURL(file);
+  preview.src = url;
+  dropzone.style.display = 'none';
+  result.classList.add('visible');
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    let exif = null;
+    try { exif = parseExif(e.target.result); } catch(err) { exif = null; }
+    render(exif, file);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ══════════════════════════════════════════
+// MINIMAL EXIF PARSER (JPEG/TIFF, no dependencies)
+// ══════════════════════════════════════════
+function parseExif(buffer){
+  const view = new DataView(buffer);
+  if (view.getUint16(0) !== 0xFFD8) return null; // niet JPEG
+  let offset = 2;
+  while (offset < view.byteLength - 1) {
+    const marker = view.getUint16(offset);
+    if (marker === 0xFFE1) {
+      if (view.getUint32(offset+4) === 0x45786966 && view.getUint16(offset+8) === 0x0000) {
+        return readTiff(view, offset+10);
+      }
+      offset += 2 + view.getUint16(offset+2);
+    } else if (marker >= 0xFFD0 && marker <= 0xFFD9) {
+      offset += 2;
+    } else if ((marker & 0xFF00) === 0xFF00) {
+      offset += 2 + view.getUint16(offset+2);
+    } else break;
+  }
+  return null;
+}
+
+function readTiff(view, tiffStart){
+  const order = view.getUint16(tiffStart);
+  const little = order === 0x4949; // 'II'
+  const ifd0Offset = view.getUint32(tiffStart+4, little);
+  const ifd0 = readIFD(view, tiffStart, tiffStart+ifd0Offset, little);
+  let tags = Object.assign({}, ifd0);
+  if (ifd0[0x8769]) {
+    const exifIFD = readIFD(view, tiffStart, tiffStart+ifd0[0x8769], little);
+    tags = Object.assign(tags, exifIFD);
+  }
+  if (ifd0[0x8825]) {
+    tags.gps = readIFD(view, tiffStart, tiffStart+ifd0[0x8825], little);
+  }
+  return tags;
+}
+
+function readIFD(view, tiffStart, ifdOffset, little){
+  const count = view.getUint16(ifdOffset, little);
+  const tags = {};
+  for (let i=0;i<count;i++){
+    const entry = ifdOffset + 2 + i*12;
+    const tag = view.getUint16(entry, little);
+    const type = view.getUint16(entry+2, little);
+    const num = view.getUint32(entry+4, little);
+    tags[tag] = readValue(view, tiffStart, type, num, entry+8, little);
+  }
+  return tags;
+}
+
+const TYPE_SIZES = {1:1,2:1,3:2,4:4,5:8,7:1,9:4,10:8};
+
+function readValue(view, tiffStart, type, count, offset, little){
+  const size = TYPE_SIZES[type] || 1;
+  const total = size*count;
+  let dataOffset = offset;
+  if (total > 4) dataOffset = tiffStart + view.getUint32(offset, little);
+
+  function readOne(off){
+    switch(type){
+      case 1: return view.getUint8(off);
+      case 3: return view.getUint16(off, little);
+      case 4: return view.getUint32(off, little);
+      case 5: { const n = view.getUint32(off, little), d = view.getUint32(off+4, little); return d?n/d:0; }
+      case 9: return view.getInt32(off, little);
+      case 10: { const n = view.getInt32(off, little), d = view.getInt32(off+4, little); return d?n/d:0; }
+      default: return view.getUint8(off);
+    }
+  }
+
+  if (type === 2) { // ASCII
+    let str = '';
+    for (let i=0;i<count-1;i++){
+      const c = view.getUint8(dataOffset+i);
+      if (c===0) break;
+      str += String.fromCharCode(c);
+    }
+    return str.trim();
+  }
+
+  if (count === 1) return readOne(dataOffset);
+  const arr = [];
+  for (let i=0;i<count;i++) arr.push(readOne(dataOffset+i*size));
+  return arr;
+}
+
+// ══════════════════════════════════════════
+// FORMATTING + RENDER
+// ══════════════════════════════════════════
+function fmtAperture(v){
+  if (!v) return '—';
+  const n = Math.round(v*10)/10;
+  return 'f/' + (n % 1 === 0 ? n.toFixed(0) : n.toFixed(1));
+}
+function fmtShutter(v){
+  if (!v) return '—';
+  if (v >= 1) return v.toFixed(v % 1 === 0 ? 0 : 1) + 's';
+  return '1/' + Math.round(1/v);
+}
+function fmtFocal(v){
+  if (!v) return '—';
+  const n = Math.round(v*10)/10;
+  return (n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)) + 'mm';
+}
+function fmtISO(v){
+  if (!v) return '—';
+  const val = Array.isArray(v) ? v[0] : v;
+  return 'ISO ' + val;
+}
+function fmtDate(v){
+  if (!v) return null;
+  // EXIF formaat: "2026:06:14 18:36:00"
+  const m = v.match(/^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+  if (!m) return v;
+  return `${m[3]}-${m[2]}-${m[1]} ${m[4]}:${m[5]}`;
+}
+function dmsToDecimal(dms, ref){
+  if (!dms || dms.length < 3) return null;
+  let dec = dms[0] + dms[1]/60 + dms[2]/3600;
+  if (ref === 'S' || ref === 'W') dec = -dec;
+  return dec;
+}
+
+function render(exif, file){
+  const e = exif || {};
+
+  // ── LCD readout ──
+  const ro = [
+    {label:'Diafragma', val: fmtAperture(e[0x829D])},
+    {label:'Sluitertijd', val: fmtShutter(e[0x829A])},
+    {label:'ISO', val: fmtISO(e[0x8827])},
+    {label:'Brandpunt', val: fmtFocal(e[0x920A])},
+  ];
+  readout.innerHTML = ro.map(r => `
+    <div class="ro-item">
+      <div class="ro-val">${r.val}</div>
+      <div class="ro-label">${r.label}</div>
+    </div>`).join('');
+
+  // ── Details groups ──
+  const groups = [];
+
+  const cameraRows = [];
+  if (e[0x010F]) cameraRows.push(['Merk', e[0x010F]]);
+  if (e[0x0110]) cameraRows.push(['Model', e[0x0110]]);
+  if (e[0xA433]) cameraRows.push(['Lensmerk', e[0xA433]]);
+  if (e[0xA434]) cameraRows.push(['Lens', e[0xA434]]);
+  if (e[0xA431]) cameraRows.push(['Serienummer', e[0xA431]]);
+  if (cameraRows.length) groups.push(['Camera & lens', cameraRows]);
+
+  const exposureRows = [];
+  if (e[0x829D]) exposureRows.push(['Diafragma', fmtAperture(e[0x829D])]);
+  if (e[0x829A]) exposureRows.push(['Sluitertijd', fmtShutter(e[0x829A]) + ' s'.replace('ss','s')]);
+  if (e[0x8827]) exposureRows.push(['ISO', fmtISO(e[0x8827]).replace('ISO ','')]);
+  if (e[0x920A]) exposureRows.push(['Brandpuntsafstand', fmtFocal(e[0x920A])]);
+  if (e[0xA405]) exposureRows.push(['35mm-equivalent', fmtFocal(e[0xA405])]);
+  if (typeof e[0x9204] === 'number') exposureRows.push(['Belichtingscompensatie', (e[0x9204]>0?'+':'')+e[0x9204].toFixed(1)+' EV']);
+  if (exposureRows.length) groups.push(['Belichting', exposureRows]);
+
+  const captureRows = [];
+  const date = fmtDate(e[0x9003] || e[0x9004] || e[0x0132]);
+  if (date) captureRows.push(['Datum & tijd', date]);
+  const w = e[0xA002], h = e[0xA003];
+  if (w && h) captureRows.push(['Afmetingen', `${w} × ${h} px`]);
+  if (file && file.size) captureRows.push(['Bestandsgrootte', (file.size/1024/1024).toFixed(1) + ' MB']);
+  if (captureRows.length) groups.push(['Opname', captureRows]);
+
+  if (e.gps && e.gps[0x0002] && e.gps[0x0004]) {
+    const lat = dmsToDecimal(e.gps[0x0002], e.gps[0x0001]);
+    const lon = dmsToDecimal(e.gps[0x0004], e.gps[0x0003]);
+    if (lat !== null && lon !== null) {
+      const link = `https://www.google.com/maps?q=${lat.toFixed(6)},${lon.toFixed(6)}`;
+      groups.push(['Locatie', [
+        ['Coördinaten', `${lat.toFixed(5)}, ${lon.toFixed(5)}`],
+        ['Bekijk op kaart', `<a href="${link}" target="_blank" style="color:var(--purple);text-decoration:none">Open in Maps →</a>`]
+      ]]);
+    }
+  }
+
+  if (!groups.length) {
+    details.innerHTML = `<div class="empty-exif">
+      📭 Geen EXIF-gegevens gevonden in deze foto.<br>
+      Dit gebeurt vaak bij foto's die via WhatsApp, Instagram of andere social media zijn gedeeld —
+      die strippen de cameragegevens automatisch. Probeer het originele bestand van je camera of SD-kaart.
+    </div>`;
+    return;
+  }
+
+  details.innerHTML = groups.map(([title, rows]) => `
+    <div class="dgroup">
+      <h3>${title}</h3>
+      ${rows.map(([l,v]) => `<div class="drow"><span class="dl">${l}</span><span class="dv">${v}</span></div>`).join('')}
+    </div>`).join('');
+}
+</script>
+</body>
+</html>

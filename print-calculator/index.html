@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strid's Focus – Print- & DPI-calculator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --purple:#b732ac; --blue:#67bde5; --orange:#d37337;
+  --lime:#9fbb3d; --green:#459a4f; --gray:#817870;
+  --bg:#fdf6f0; --surface:#ffffff; --text:#1f1a17;
+  --muted:#7a6f6a; --border:#ecddd5; --radius:16px;
+  --vf-bg:#15120f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+header{
+  background:linear-gradient(135deg,#fff8f4 0%,#fff3ee 100%);
+  border-bottom:1px solid var(--border);
+  padding:0 28px;display:flex;align-items:center;gap:16px;
+  height:76px;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(183,50,172,.08);
+}
+.logo-wrap{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.logo-svg{width:46px;height:46px}
+.brand-name{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--purple);letter-spacing:-.01em}
+.brand-sub{font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
+.header-right{margin-left:auto;font-size:.85rem;color:var(--muted);font-weight:500}
+
+/* ── LAYOUT ── */
+.wrap{max-width:760px;margin:0 auto;padding:36px 20px 80px}
+.hero{margin-bottom:28px;text-align:center}
+.hero h1{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;margin-bottom:8px}
+.hero p{color:var(--muted);font-size:.95rem;max-width:480px;margin:0 auto}
+
+/* ── INPUT PANEL ── */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:20px}
+.panel h3{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--purple)}
+
+.upload-row{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.upload-row input[type=file]{display:none}
+.upload-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--bg);border:1.5px dashed var(--border);border-radius:99px;
+  padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text);
+  transition:all .15s;
+}
+.upload-btn:hover{border-color:var(--purple);color:var(--purple)}
+.upload-name{font-size:.8rem;color:var(--muted)}
+
+.px-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.px-field{display:flex;flex-direction:column;gap:4px}
+.px-field label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.px-field input{
+  font-family:'Space Mono',monospace;font-size:1.05rem;font-weight:700;
+  border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;
+  width:110px;color:var(--text);background:var(--bg);
+}
+.px-field input:focus{outline:none;border-color:var(--purple)}
+.px-x{font-size:1.2rem;color:var(--muted);margin-top:18px}
+
+.dpi-row{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
+.dpi-presets{display:flex;gap:6px;flex-wrap:wrap}
+.dpi-btn{
+  padding:7px 14px;border-radius:99px;border:1.5px solid var(--border);
+  background:var(--bg);font-size:.82rem;font-weight:600;cursor:pointer;color:var(--text);
+  transition:all .15s;font-family:'Space Mono',monospace;
+}
+.dpi-btn.active,.dpi-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.dpi-custom{display:flex;align-items:center;gap:6px;margin-left:auto}
+.dpi-custom input{
+  font-family:'Space Mono',monospace;font-size:.95rem;font-weight:700;
+  border:1.5px solid var(--border);border-radius:10px;padding:7px 10px;width:70px;
+  color:var(--text);background:var(--bg);
+}
+.dpi-custom input:focus{outline:none;border-color:var(--purple)}
+.dpi-custom span{font-size:.78rem;color:var(--muted)}
+
+/* ── READOUT (LCD style) ── */
+.readout{
+  background:var(--vf-bg);border-radius:var(--radius);
+  padding:26px 24px;text-align:center;margin-bottom:20px;
+}
+.ro-label{font-size:.7rem;color:#9d958b;text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px}
+.ro-main{font-family:'Space Mono',monospace;font-weight:700;color:var(--blue);font-size:2.1rem;letter-spacing:.02em}
+.ro-sub{font-family:'Space Mono',monospace;font-size:1rem;color:#cfc8be;margin-top:6px}
+
+/* ── FORMAT LIST ── */
+.formats{display:flex;flex-direction:column;gap:10px}
+.fmt-row{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:12px 16px;
+}
+.fmt-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:10px}
+.fmt-name{font-weight:600;font-size:.92rem}
+.fmt-tag{font-size:.72rem;font-weight:700;padding:2px 10px;border-radius:99px;white-space:nowrap}
+.fmt-dpi{font-family:'Space Mono',monospace;font-size:.78rem;color:var(--muted);margin-top:2px}
+.fmt-bar-bg{background:var(--bg);border-radius:99px;height:6px;overflow:hidden}
+.fmt-bar{height:100%;border-radius:99px;transition:width .25s}
+
+.tag-sharp{background:#e6f4ea;color:var(--green)}
+.tag-good{background:#f3f6e2;color:#7c9430}
+.tag-low{background:#fdf2e9;color:var(--orange)}
+
+@media(max-width:560px){
+  .header-right{display:none}
+  .hero h1{font-size:1.5rem}
+  .ro-main{font-size:1.6rem}
+  .px-x{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="222 66 384 434">
+      <defs>
+        <mask id="strid-cut" maskUnits="userSpaceOnUse" x="222" y="66" width="384" height="434">
+          <rect x="222" y="66" width="384" height="434" fill="#fff"/>
+          <g transform="translate(231.874,-130.394)" fill="#000" stroke="#000" stroke-width="2">
+            <g><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.1 467.18 L107.16 467.18 L0 574.33 L0 595.28 Z"/></g>
+            <g transform="translate(449.652,49.897) rotate(60.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.28 466.99 L107.31 466.99 L0 574.3 L0 595.28 Z"/></g>
+            <g transform="translate(630.717,463.005) rotate(120)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L127.64 467.63 L106.77 467.63 L0 574.41 L0 595.28 Z"/></g>
+            <g transform="translate(365.565,826.193) rotate(179.7)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L126.6 468.68 L105.9 468.68 L0 574.58 L0 595.28 Z"/></g>
+            <g transform="translate(-84.9791,778.186) rotate(-120.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.08 467.2 L107.14 467.2 L0 574.34 L0 595.28 Z"/></g>
+            <g transform="translate(-267.486,365.713) rotate(-60.2)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L129.27 466 L108.14 466 L0 574.14 L0 595.28 Z"/></g>
+          </g>
+        </mask>
+      </defs>
+      <g mask="url(#strid-cut)"><g transform="translate(231.874,-130.394)">
+        <g fill="#b732ac" stroke="#b732ac" stroke-width="0.25">
+          <path transform="translate(9.35432,-124.256)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#67bde5" stroke="#67bde5" stroke-width="0.25" transform="translate(449.652,49.897) rotate(60.1)">
+          <path transform="translate(9.21649,-124.257)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#d37337" stroke="#d37337" stroke-width="0.25" transform="translate(630.717,463.005) rotate(120)">
+          <path transform="translate(9.39314,-124.115)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#9fbb3d" stroke="#9fbb3d" stroke-width="0.25" transform="translate(365.565,826.193) rotate(179.7)">
+          <path transform="translate(9.34106,-124.265)" d="M0 595.28 L108.85 595.28 L20.62 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#459a4f" stroke="#459a4f" stroke-width="0.25" transform="translate(-84.9791,778.186) rotate(-120.1)">
+          <path transform="translate(9.35409,-124.421)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#817870" stroke="#817870" stroke-width="0.25" transform="translate(-267.486,365.713) rotate(-60.2)">
+          <path transform="translate(9.27977,-124.051)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+      </g></g>
+    </svg>
+    <div>
+      <div class="brand-name">Strid's Focus</div>
+      <div class="brand-sub">Print- & DPI-calculator</div>
+    </div>
+  </div>
+  <div class="header-right">Welk formaat kun je afdrukken?</div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Hoe groot kun je 'm afdrukken?</h1>
+    <p>Vul de resolutie van je foto in (of upload 'm) en kies een DPI. Je ziet direct het maximale afdrukformaat en welke standaardformaten haalbaar zijn.</p>
+  </div>
+
+  <div class="panel">
+    <h3>1. Resolutie van je foto</h3>
+    <div class="upload-row">
+      <label class="upload-btn">
+        📤 Foto uploaden
+        <input type="file" id="fileInput" accept="image/*">
+      </label>
+      <span class="upload-name" id="fileName"></span>
+    </div>
+    <div class="px-row">
+      <div class="px-field">
+        <label>Breedte (px)</label>
+        <input type="number" id="pxW" value="6960" min="1">
+      </div>
+      <div class="px-x">×</div>
+      <div class="px-field">
+        <label>Hoogte (px)</label>
+        <input type="number" id="pxH" value="4640" min="1">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>2. Gewenste DPI</h3>
+    <div class="dpi-row">
+      <div class="dpi-presets">
+        <button class="dpi-btn" data-dpi="150">150</button>
+        <button class="dpi-btn" data-dpi="200">200</button>
+        <button class="dpi-btn active" data-dpi="240">240</button>
+        <button class="dpi-btn" data-dpi="300">300</button>
+      </div>
+      <div class="dpi-custom">
+        <span>aangepast:</span>
+        <input type="number" id="dpiCustom" value="240" min="50" max="1200">
+        <span>dpi</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div class="ro-label">Maximaal afdrukformaat</div>
+    <div class="ro-main" id="roMain">— × — cm</div>
+    <div class="ro-sub" id="roSub">— × — inch</div>
+  </div>
+
+  <div class="panel">
+    <h3>Haalbare standaardformaten</h3>
+    <div class="formats" id="formats"></div>
+  </div>
+</div>
+
+<script>
+const FORMATS = [
+  {name:'10 × 15 cm', w:10, h:15},
+  {name:'13 × 18 cm', w:13, h:18},
+  {name:'15 × 20 cm', w:15, h:20},
+  {name:'20 × 30 cm', w:20, h:30},
+  {name:'A4 (21 × 29,7 cm)', w:21, h:29.7},
+  {name:'30 × 40 cm', w:30, h:40},
+  {name:'A3 (29,7 × 42 cm)', w:29.7, h:42},
+  {name:'30 × 45 cm', w:30, h:45},
+  {name:'40 × 60 cm', w:40, h:60},
+  {name:'50 × 75 cm', w:50, h:75},
+  {name:'60 × 90 cm', w:60, h:90},
+];
+
+const pxW = document.getElementById('pxW');
+const pxH = document.getElementById('pxH');
+const dpiCustom = document.getElementById('dpiCustom');
+const dpiBtns = document.querySelectorAll('.dpi-btn');
+const fileInput = document.getElementById('fileInput');
+const fileName = document.getElementById('fileName');
+const roMain = document.getElementById('roMain');
+const roSub = document.getElementById('roSub');
+const formatsEl = document.getElementById('formats');
+
+function numFmt(n, decimals=1){
+  return n.toFixed(decimals).replace('.', ',');
+}
+
+function getDpi(){
+  return parseFloat(dpiCustom.value) || 240;
+}
+
+function update(){
+  const w = parseFloat(pxW.value) || 0;
+  const h = parseFloat(pxH.value) || 0;
+  const dpi = getDpi();
+
+  if (w > 0 && h > 0 && dpi > 0) {
+    const wCm = (w / dpi) * 2.54;
+    const hCm = (h / dpi) * 2.54;
+    const wIn = w / dpi;
+    const hIn = h / dpi;
+    roMain.textContent = `${numFmt(wCm)} × ${numFmt(hCm)} cm`;
+    roSub.textContent = `${numFmt(wIn)} × ${numFmt(hIn)} inch`;
+  } else {
+    roMain.textContent = '— × — cm';
+    roSub.textContent = '— × — inch';
+  }
+
+  renderFormats(w, h);
+}
+
+function renderFormats(w, h){
+  if (!(w > 0 && h > 0)) { formatsEl.innerHTML = ''; return; }
+  const photoLong = Math.max(w, h);
+  const photoShort = Math.min(w, h);
+
+  formatsEl.innerHTML = FORMATS.map(f => {
+    const fmtLong = Math.max(f.w, f.h);
+    const fmtShort = Math.min(f.w, f.h);
+    const dpiLong = photoLong / (fmtLong / 2.54);
+    const dpiShort = photoShort / (fmtShort / 2.54);
+    const achievable = Math.min(dpiLong, dpiShort);
+
+    let tagClass, tagLabel, barColor;
+    if (achievable >= 200) { tagClass='tag-sharp'; tagLabel='Scherp'; barColor='var(--green)'; }
+    else if (achievable >= 100) { tagClass='tag-good'; tagLabel='Goed'; barColor='var(--lime)'; }
+    else { tagClass='tag-low'; tagLabel='Korrelig'; barColor='var(--orange)'; }
+
+    const barWidth = Math.min(achievable / 300 * 100, 100);
+
+    return `
+      <div class="fmt-row">
+        <div class="fmt-top">
+          <div>
+            <div class="fmt-name">${f.name}</div>
+            <div class="fmt-dpi">${Math.round(achievable)} dpi haalbaar</div>
+          </div>
+          <span class="fmt-tag ${tagClass}">${tagLabel}</span>
+        </div>
+        <div class="fmt-bar-bg"><div class="fmt-bar" style="width:${barWidth}%;background:${barColor}"></div></div>
+      </div>`;
+  }).join('');
+}
+
+// DPI presets
+dpiBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    dpiBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    dpiCustom.value = btn.dataset.dpi;
+    update();
+  });
+});
+dpiCustom.addEventListener('input', () => {
+  dpiBtns.forEach(b => b.classList.toggle('active', b.dataset.dpi === dpiCustom.value));
+  update();
+});
+
+pxW.addEventListener('input', update);
+pxH.addEventListener('input', update);
+
+// Auto-detect resolution from uploaded photo
+fileInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  fileName.textContent = file.name;
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    pxW.value = img.naturalWidth;
+    pxH.value = img.naturalHeight;
+    update();
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+});
+
+update();
+</script>
+</body>
+</html>

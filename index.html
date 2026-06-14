@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strid's Focus – Apps & tools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  --purple:#b732ac; --blue:#67bde5; --orange:#d37337;
+  --lime:#9fbb3d; --green:#459a4f; --gray:#817870;
+  --bg:#fdf6f0; --surface:#ffffff; --text:#1f1a17;
+  --muted:#7a6f6a; --border:#ecddd5; --radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+header{
+  background:linear-gradient(135deg,#fff8f4 0%,#fff3ee 100%);
+  border-bottom:1px solid var(--border);
+  padding:0 28px;display:flex;align-items:center;gap:16px;
+  height:76px;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(183,50,172,.08);
+}
+.logo-wrap{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.logo-svg{width:52px;height:52px}
+.brand-name{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:var(--purple);letter-spacing:-.01em}
+.brand-sub{font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
+.header-right{margin-left:auto;font-size:.85rem;color:var(--muted);font-weight:500}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1100px;margin:0 auto;padding:48px 24px 90px}
+.hero{margin-bottom:40px}
+.hero h1{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:700;margin-bottom:10px}
+.hero p{color:var(--muted);font-size:.98rem;max-width:560px}
+
+/* ── GRID ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
+
+.card{
+  border-radius:20px;overflow:hidden;position:relative;
+  min-height:200px;display:flex;flex-direction:column;justify-content:flex-end;
+  text-decoration:none;color:#fff;
+  transition:transform .2s,box-shadow .2s;
+  box-shadow:0 4px 16px rgba(0,0,0,.08);
+}
+.card:hover{transform:translateY(-4px);box-shadow:0 10px 32px rgba(0,0,0,.16)}
+.card-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:4.6rem;padding-bottom:36px}
+.card-body{position:relative;z-index:2;padding:18px 20px;background:linear-gradient(to top,rgba(0,0,0,.5) 0%,transparent 100%)}
+.card-title{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;line-height:1.2}
+.card-desc{font-size:.82rem;color:rgba(255,255,255,.88);margin-top:5px;line-height:1.4}
+.card-arrow{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.22);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:99px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+
+.card-recepten{background:linear-gradient(135deg,#f4a261,#e76f51)}
+.card-exif{background:linear-gradient(135deg,#3a322b,#15120f)}
+.card-print{background:linear-gradient(135deg,#67bde5,#4895ef)}
+.card-lach{background:linear-gradient(135deg,#b732ac,#d37337)}
+
+/* ── SOON CARD ── */
+.card.soon{
+  border:2px dashed var(--border);color:var(--muted);
+  background:var(--surface);box-shadow:none;cursor:default;
+}
+.card.soon:hover{transform:none;box-shadow:none}
+.card.soon .card-bg{font-size:3.6rem;opacity:.35}
+.card.soon .card-body{background:none}
+.card.soon .card-title{color:var(--text)}
+.card.soon .card-desc{color:var(--muted)}
+.card.soon .card-arrow{display:none}
+
+@media(max-width:560px){
+  .header-right{display:none}
+  .hero h1{font-size:1.6rem}
+  .grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:400px){
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="222 66 384 434">
+      <defs>
+        <mask id="strid-cut" maskUnits="userSpaceOnUse" x="222" y="66" width="384" height="434">
+          <rect x="222" y="66" width="384" height="434" fill="#fff"/>
+          <g transform="translate(231.874,-130.394)" fill="#000" stroke="#000" stroke-width="2">
+            <g><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.1 467.18 L107.16 467.18 L0 574.33 L0 595.28 Z"/></g>
+            <g transform="translate(449.652,49.897) rotate(60.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.28 466.99 L107.31 466.99 L0 574.3 L0 595.28 Z"/></g>
+            <g transform="translate(630.717,463.005) rotate(120)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L127.64 467.63 L106.77 467.63 L0 574.41 L0 595.28 Z"/></g>
+            <g transform="translate(365.565,826.193) rotate(179.7)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L126.6 468.68 L105.9 468.68 L0 574.58 L0 595.28 Z"/></g>
+            <g transform="translate(-84.9791,778.186) rotate(-120.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.08 467.2 L107.14 467.2 L0 574.34 L0 595.28 Z"/></g>
+            <g transform="translate(-267.486,365.713) rotate(-60.2)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L129.27 466 L108.14 466 L0 574.14 L0 595.28 Z"/></g>
+          </g>
+        </mask>
+      </defs>
+      <g mask="url(#strid-cut)"><g transform="translate(231.874,-130.394)">
+        <g fill="#b732ac" stroke="#b732ac" stroke-width="0.25">
+          <path transform="translate(9.35432,-124.256)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#67bde5" stroke="#67bde5" stroke-width="0.25" transform="translate(449.652,49.897) rotate(60.1)">
+          <path transform="translate(9.21649,-124.257)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#d37337" stroke="#d37337" stroke-width="0.25" transform="translate(630.717,463.005) rotate(120)">
+          <path transform="translate(9.39314,-124.115)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#9fbb3d" stroke="#9fbb3d" stroke-width="0.25" transform="translate(365.565,826.193) rotate(179.7)">
+          <path transform="translate(9.34106,-124.265)" d="M0 595.28 L108.85 595.28 L20.62 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#459a4f" stroke="#459a4f" stroke-width="0.25" transform="translate(-84.9791,778.186) rotate(-120.1)">
+          <path transform="translate(9.35409,-124.421)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#817870" stroke="#817870" stroke-width="0.25" transform="translate(-267.486,365.713) rotate(-60.2)">
+          <path transform="translate(9.27977,-124.051)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+      </g></g>
+    </svg>
+    <div>
+      <div class="brand-name">Strid's Focus</div>
+      <div class="brand-sub">Apps & tools</div>
+    </div>
+  </div>
+  <div class="header-right">Een groeiende verzameling kleine, handige tools</div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Mijn digitale gereedschapskist</h1>
+    <p>Een verzameling kleine apps en tools — gemaakt voor mezelf, maar gedeeld voor wie er wat aan heeft. Klik op een tool om 'm te openen.</p>
+  </div>
+
+  <div class="grid">
+    <a class="card card-recepten" href="./recepten/">
+      <div class="card-bg">🍳</div>
+      <div class="card-arrow">→</div>
+      <div class="card-body">
+        <div class="card-title">Recepten</div>
+        <div class="card-desc">Voedingswaarden, ingrediënten en bereiding — met porties op maat.</div>
+      </div>
+    </a>
+
+    <a class="card card-exif" href="./exif-viewer/">
+      <div class="card-bg">📷</div>
+      <div class="card-arrow">→</div>
+      <div class="card-body">
+        <div class="card-title">EXIF-viewer</div>
+        <div class="card-desc">Bekijk diafragma, sluitertijd, ISO en lens achter je foto's.</div>
+      </div>
+    </a>
+
+    <a class="card card-print" href="./print-calculator/">
+      <div class="card-bg">🖼️</div>
+      <div class="card-arrow">→</div>
+      <div class="card-body">
+        <div class="card-title">Print- & DPI-calculator</div>
+        <div class="card-desc">Bereken het maximale afdrukformaat van je foto's.</div>
+      </div>
+    </a>
+
+    <a class="card card-lach" href="./dag-niet-gelachen/">
+      <div class="card-bg">😄</div>
+      <div class="card-arrow">→</div>
+      <div class="card-body">
+        <div class="card-title">Een dag niet gelachen</div>
+        <div class="card-desc">Dagelijkse dosis goede zin, in scheurkalender-stijl.</div>
+      </div>
+    </a>
+
+    <div class="card soon">
+      <div class="card-bg">🎨</div>
+      <div class="card-body">
+        <div class="card-title">Kleurenpalet-extractor</div>
+        <div class="card-desc">Binnenkort: haal een kleurenpalet uit een foto.</div>
+      </div>
+    </div>
+
+    <div class="card soon">
+      <div class="card-bg">🏥</div>
+      <div class="card-body">
+        <div class="card-title">Nictiz 5-layer visualizer</div>
+        <div class="card-desc">Binnenkort: interactieve uitleg van het Nictiz-model.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

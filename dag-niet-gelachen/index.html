@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strid's Focus – Een dag niet gelachen</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,600&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --purple:#b732ac; --blue:#67bde5; --orange:#d37337;
+  --lime:#9fbb3d; --green:#459a4f; --gray:#817870;
+  --bg:#fdf6f0; --surface:#ffffff; --text:#1f1a17;
+  --muted:#7a6f6a; --border:#ecddd5; --radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+header{
+  background:linear-gradient(135deg,#fff8f4 0%,#fff3ee 100%);
+  border-bottom:1px solid var(--border);
+  padding:0 28px;display:flex;align-items:center;gap:16px;
+  height:76px;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(183,50,172,.08);
+}
+.logo-wrap{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.logo-svg{width:46px;height:46px}
+.brand-name{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--purple);letter-spacing:-.01em}
+.brand-sub{font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
+.header-right{margin-left:auto;font-size:.85rem;color:var(--muted);font-weight:500}
+
+/* ── LAYOUT ── */
+.wrap{max-width:520px;margin:0 auto;padding:40px 20px 80px;display:flex;flex-direction:column;align-items:center}
+.hero{margin-bottom:28px;text-align:center}
+.hero h1{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;margin-bottom:8px}
+.hero .motto{
+  font-family:'Playfair Display',serif;font-style:italic;font-size:1.05rem;
+  color:var(--purple);max-width:380px;margin:0 auto;line-height:1.5;
+}
+
+/* ── SCHEURKALENDER CARD ── */
+.calendar-card{
+  width:100%;border-radius:var(--radius);overflow:visible;
+  box-shadow:0 12px 32px rgba(0,0,0,.1);
+  margin-bottom:24px;
+}
+.cal-header{
+  padding:26px 28px 44px;color:#fff;position:relative;
+  border-radius:var(--radius) var(--radius) 0 0;
+  clip-path:polygon(
+    0% 0%, 100% 0%, 100% 88%,
+    96% 94%, 92% 87%, 88% 96%, 84% 89%, 80% 97%, 76% 90%, 72% 98%,
+    68% 88%, 64% 96%, 60% 90%, 56% 98%, 52% 88%, 48% 96%, 44% 90%,
+    40% 98%, 36% 88%, 32% 96%, 28% 90%, 24% 98%, 20% 88%, 16% 96%,
+    12% 90%, 8% 98%, 4% 88%, 0% 96%
+  );
+  margin-bottom:-22px;
+  transition:background 1s ease;
+}
+.cal-day{font-size:.85rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;opacity:.85}
+.cal-date{font-family:'Playfair Display',serif;font-size:3.4rem;font-weight:700;line-height:1.1;margin-top:2px}
+.cal-month{font-size:.95rem;font-weight:500;opacity:.9;margin-top:2px}
+
+.cal-body{
+  background:var(--surface);border-radius:0 0 var(--radius) var(--radius);
+  padding:40px 28px 30px;text-align:center;min-height:140px;
+  display:flex;align-items:center;justify-content:center;
+}
+.cal-quote{
+  font-family:'Playfair Display',serif;font-style:italic;font-size:1.2rem;
+  line-height:1.55;color:var(--text);transition:opacity .2s;
+}
+.cal-quote.fade{opacity:0}
+
+/* ── BUTTONS ── */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--surface);border:1.5px solid var(--border);border-radius:99px;
+  padding:11px 22px;font-size:.9rem;font-weight:600;cursor:pointer;
+  color:var(--text);transition:all .15s;
+}
+.btn:hover{background:var(--purple);color:#fff;border-color:var(--purple)}
+.btn.primary{background:var(--purple);color:#fff;border-color:var(--purple)}
+.btn.primary:hover{opacity:.9}
+.toast{
+  margin-top:14px;font-size:.82rem;color:var(--green);font-weight:600;
+  opacity:0;transition:opacity .25s;height:18px;
+}
+.toast.show{opacity:1}
+
+@media(max-width:480px){
+  .header-right{display:none}
+  .cal-date{font-size:2.6rem}
+  .cal-quote{font-size:1.05rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="222 66 384 434">
+      <defs>
+        <mask id="strid-cut" maskUnits="userSpaceOnUse" x="222" y="66" width="384" height="434">
+          <rect x="222" y="66" width="384" height="434" fill="#fff"/>
+          <g transform="translate(231.874,-130.394)" fill="#000" stroke="#000" stroke-width="2">
+            <g><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.1 467.18 L107.16 467.18 L0 574.33 L0 595.28 Z"/></g>
+            <g transform="translate(449.652,49.897) rotate(60.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.28 466.99 L107.31 466.99 L0 574.3 L0 595.28 Z"/></g>
+            <g transform="translate(630.717,463.005) rotate(120)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L127.64 467.63 L106.77 467.63 L0 574.41 L0 595.28 Z"/></g>
+            <g transform="translate(365.565,826.193) rotate(179.7)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L126.6 468.68 L105.9 468.68 L0 574.58 L0 595.28 Z"/></g>
+            <g transform="translate(-84.9791,778.186) rotate(-120.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.08 467.2 L107.14 467.2 L0 574.34 L0 595.28 Z"/></g>
+            <g transform="translate(-267.486,365.713) rotate(-60.2)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L129.27 466 L108.14 466 L0 574.14 L0 595.28 Z"/></g>
+          </g>
+        </mask>
+      </defs>
+      <g mask="url(#strid-cut)"><g transform="translate(231.874,-130.394)">
+        <g fill="#b732ac" stroke="#b732ac" stroke-width="0.25">
+          <path transform="translate(9.35432,-124.256)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#67bde5" stroke="#67bde5" stroke-width="0.25" transform="translate(449.652,49.897) rotate(60.1)">
+          <path transform="translate(9.21649,-124.257)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#d37337" stroke="#d37337" stroke-width="0.25" transform="translate(630.717,463.005) rotate(120)">
+          <path transform="translate(9.39314,-124.115)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#9fbb3d" stroke="#9fbb3d" stroke-width="0.25" transform="translate(365.565,826.193) rotate(179.7)">
+          <path transform="translate(9.34106,-124.265)" d="M0 595.28 L108.85 595.28 L20.62 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#459a4f" stroke="#459a4f" stroke-width="0.25" transform="translate(-84.9791,778.186) rotate(-120.1)">
+          <path transform="translate(9.35409,-124.421)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#817870" stroke="#817870" stroke-width="0.25" transform="translate(-267.486,365.713) rotate(-60.2)">
+          <path transform="translate(9.27977,-124.051)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+      </g></g>
+    </svg>
+    <div>
+      <div class="brand-name">Strid's Focus</div>
+      <div class="brand-sub">Een dag niet gelachen</div>
+    </div>
+  </div>
+  <div class="header-right">Dagelijkse dosis goede zin</div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Vandaag alweer gelachen?</h1>
+    <p class="motto">"Een dag niet gelachen is een dag niet geleefd."</p>
+  </div>
+
+  <div class="calendar-card">
+    <div class="cal-header" id="calHeader">
+      <div class="cal-day" id="calDay">Zondag</div>
+      <div class="cal-date" id="calDate">14</div>
+      <div class="cal-month" id="calMonth">juni 2026</div>
+    </div>
+    <div class="cal-body">
+      <div class="cal-quote" id="calQuote">Lachen is de kortste afstand tussen twee mensen.</div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn primary" id="newBtn">🎲 Nieuwe quote</button>
+    <button class="btn" id="copyBtn">📋 Kopieer</button>
+  </div>
+  <div class="toast" id="toast">Gekopieerd!</div>
+</div>
+
+<script>
+const QUOTES = [
+  "Lachen is de kortste afstand tussen twee mensen.",
+  "Een glimlach kost niets, maar geeft veel.",
+  "Vandaag is een goede dag om te lachen om jezelf.",
+  "Humor is de zonnebrand voor een zware dag.",
+  "Een goede grap onthoud je langer dan een goed advies.",
+  "Lachen verbindt sneller dan woorden.",
+  "Soms is de beste reactie gewoon... lachen.",
+  "Een dag zonder lachen is een gemiste kans.",
+  "Geniet van de kleine, gekke momenten — dat zijn de mooiste.",
+  "Wie zichzelf niet kan uitlachen, mist de halve grap.",
+  "Lach vandaag iets harder dan gisteren.",
+  "Een knipoog en een grap lossen meer op dan je denkt.",
+  "Het leven is te kort voor saaie dagen.",
+  "Maak van vandaag een dag om over te vertellen.",
+  "Een goed humeur is besmettelijker dan een verkoudheid.",
+  "Plezier maken staat ook op de planning, echt waar.",
+  "Een onverwachte lachbui is de beste pauze.",
+  "Niemand onthoudt de perfecte dag — wel de leukste.",
+  "Lachen rimpelt je gezicht, maar gladstrijkt je hoofd.",
+  "Vandaag mag het weer eens om niets gaan.",
+  "Een dag met een binnenpretje is nooit verloren.",
+  "Soms is 'gewoon doorgaan' de grappigste optie.",
+  "Elke dag verdient minstens één giechelmoment.",
+  "Klein beginnen: glimlach. Groot eindigen: schaterlachen.",
+  "Humor is je reddingsvest op een drukke dag.",
+  "Lach om de chaos — die verdwijnt er niet door, maar het voelt lichter.",
+  "Iedereen heeft vandaag recht op minstens één goede grap.",
+  "De beste dagen beginnen vaak met 'oh nee, niet weer...' en eindigen met lachen.",
+  "Een dag niet gelachen telt eigenlijk niet helemaal mee.",
+  "Zorg dat er vandaag minstens één keer écht gelachen wordt.",
+];
+
+const GRADIENTS = [
+  'linear-gradient(135deg,#b732ac,#67bde5)', // zondag
+  'linear-gradient(135deg,#67bde5,#9fbb3d)', // maandag
+  'linear-gradient(135deg,#d37337,#b732ac)', // dinsdag
+  'linear-gradient(135deg,#9fbb3d,#459a4f)', // woensdag
+  'linear-gradient(135deg,#459a4f,#67bde5)', // donderdag
+  'linear-gradient(135deg,#b732ac,#d37337)', // vrijdag
+  'linear-gradient(135deg,#d37337,#9fbb3d)', // zaterdag
+];
+
+const DAY_NAMES = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+const MONTH_NAMES = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+
+const calHeader = document.getElementById('calHeader');
+const calDay = document.getElementById('calDay');
+const calDate = document.getElementById('calDate');
+const calMonth = document.getElementById('calMonth');
+const calQuote = document.getElementById('calQuote');
+const newBtn = document.getElementById('newBtn');
+const copyBtn = document.getElementById('copyBtn');
+const toast = document.getElementById('toast');
+
+let currentQuote = '';
+
+function dayOfYear(d){
+  const start = new Date(d.getFullYear(), 0, 0);
+  const diff = d - start;
+  return Math.floor(diff / 86400000);
+}
+
+function setupCalendar(){
+  const now = new Date();
+  calDay.textContent = DAY_NAMES[now.getDay()].charAt(0).toUpperCase() + DAY_NAMES[now.getDay()].slice(1);
+  calDate.textContent = now.getDate();
+  calMonth.textContent = MONTH_NAMES[now.getMonth()] + ' ' + now.getFullYear();
+  calHeader.style.background = GRADIENTS[now.getDay()];
+
+  const idx = dayOfYear(now) % QUOTES.length;
+  setQuote(QUOTES[idx]);
+}
+
+function setQuote(text){
+  currentQuote = text;
+  calQuote.classList.add('fade');
+  setTimeout(() => {
+    calQuote.textContent = text;
+    calQuote.classList.remove('fade');
+  }, 150);
+}
+
+newBtn.addEventListener('click', () => {
+  let next;
+  do { next = QUOTES[Math.floor(Math.random() * QUOTES.length)]; } while (next === currentQuote && QUOTES.length > 1);
+  setQuote(next);
+});
+
+copyBtn.addEventListener('click', async () => {
+  const text = `"${currentQuote}"\n— Een dag niet gelachen is een dag niet geleefd 🙂`;
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1800);
+  } catch (e) {
+    toast.textContent = 'Kopiëren niet ondersteund';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1800);
+  }
+});
+
+setupCalendar();
+</script>
+</body>
+</html>
