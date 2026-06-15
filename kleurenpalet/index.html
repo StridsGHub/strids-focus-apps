@@ -8,9 +8,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
 
 :root {
-  --purple:#b732ac; --blue:#67bde5; --orange:#d37337;
+  --purple:#b732ac; --cat:#4895ef; --blue:#67bde5; --orange:#d37337;
   --lime:#9fbb3d; --green:#459a4f; --gray:#817870;
-  --bg:#fdf6f0; --surface:#ffffff; --text:#1f1a17;
+  --bg:#fdf6f0; --surface:#ffffff; --text:#404040;
   --muted:#7a6f6a; --border:#ecddd5; --radius:16px;
   --vf-bg:#15120f;
 }
@@ -65,22 +65,27 @@ header{
 .preview-wrap{border-radius:18px;overflow:hidden;background:var(--vf-bg);margin-bottom:20px}
 .preview-wrap img{display:block;width:100%;max-height:380px;object-fit:contain;background:#000}
 
-.palette-strip{display:flex;border-radius:14px;overflow:hidden;margin-bottom:20px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.palette-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:20px}
 .swatch{
-  flex:1;height:120px;display:flex;align-items:flex-end;justify-content:center;
-  padding-bottom:12px;cursor:pointer;position:relative;transition:flex .2s;
+  aspect-ratio:1;border-radius:8px;cursor:pointer;position:relative;overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,.08);transition:transform .15s;
 }
-.swatch:hover{flex:1.4}
-.swatch-hex{font-family:'Space Mono',monospace;font-size:.78rem;font-weight:700;letter-spacing:.02em}
+.swatch:hover{transform:scale(1.1);z-index:2;box-shadow:0 4px 14px rgba(0,0,0,.22)}
+.swatch-hex{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;text-align:center;
+  background:rgba(0,0,0,.55);color:#fff;opacity:0;transition:opacity .15s;padding:2px;
+}
+.swatch:hover .swatch-hex{opacity:1}
 
 .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
 .btn{
   display:inline-flex;align-items:center;gap:8px;
   background:var(--surface);border:1.5px solid var(--border);border-radius:99px;
   padding:10px 22px;font-size:.88rem;font-weight:600;cursor:pointer;
-  color:var(--text);transition:all .15s;
+  color:#404040;transition:all .15s;
 }
-.btn:hover{background:var(--purple);color:#fff;border-color:var(--purple)}
+.btn:hover{background:var(--cat);color:#fff;border-color:var(--cat)}
 
 .toast{
   text-align:center;margin-top:12px;font-size:.82rem;color:var(--green);font-weight:600;
@@ -91,9 +96,7 @@ header{
 @media(max-width:560px){
   .header-right{display:none}
   .hero h1{font-size:1.5rem}
-  .palette-strip{flex-wrap:wrap}
-  .swatch{flex:1 0 33.3%;height:80px}
-  .swatch:hover{flex:1 0 33.3%}
+  .palette-grid{grid-template-columns:repeat(5,1fr)}
 }
 </style>
 </head>
@@ -153,7 +156,7 @@ header{
 <div class="wrap">
   <div class="hero">
     <h1>Welke kleuren zitten er in deze foto?</h1>
-    <p>Upload een foto en krijg direct het kleurenpalet: handig voor branding, moodboards of om bij een foto passende kleuren te kiezen.</p>
+    <p>Upload een foto en krijg de 40 meest voorkomende kleuren: handig voor branding, moodboards of om bij een foto passende kleuren te kiezen. Hover over een vakje voor de hexcode, klik om te kopiëren.</p>
   </div>
 
   <div class="dropzone" id="dropzone">
@@ -173,7 +176,7 @@ header{
     <div class="preview-wrap">
       <img id="preview" alt="Voorbeeld">
     </div>
-    <div class="palette-strip" id="palette"></div>
+    <div class="palette-grid" id="palette"></div>
     <div class="actions">
       <button class="btn" id="copyAllBtn">📋 Kopieer alle hexcodes</button>
       <button class="btn" id="resetBtn">↺ Andere foto</button>
@@ -223,7 +226,7 @@ function handleFile(file){
 
   const img = new Image();
   img.onload = () => {
-    const hexes = extractPalette(img, 6);
+    const hexes = extractPalette(img, 40);
     renderPalette(hexes);
   };
   img.src = url;
@@ -306,12 +309,11 @@ function luminance(hex){
 // ══════════════════════════════════════════
 function renderPalette(hexes){
   currentHexes = hexes;
-  palette.innerHTML = hexes.map(hex => {
-    const textColor = luminance(hex) > 0.6 ? '#1f1a17' : '#ffffff';
-    return `<div class="swatch" style="background:${hex}" onclick="copyHex('${hex}')">
-      <span class="swatch-hex" style="color:${textColor}">${hex}</span>
-    </div>`;
-  }).join('');
+  palette.innerHTML = hexes.map(hex =>
+    `<div class="swatch" style="background:${hex}" onclick="copyHex('${hex}')" title="${hex}">
+      <span class="swatch-hex">${hex}</span>
+    </div>`
+  ).join('');
 }
 
 function copyHex(hex){

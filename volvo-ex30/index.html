@@ -12,19 +12,24 @@
         }
 
         :root {
-            --primary: #003366;
-            --accent: #3ea6ff;
-            --dark: #0a0e27;
-            --light: #f5f7fa;
-            --gold: #d4af37;
-            --success: #2ecc71;
+            --primary: #b732ac;
+            --accent: #d37337;
+            --dark: #404040;
+            --light: #fdf6f0;
+            --gold: #d37337;
+            --success: #459a4f;
             --warning: #e74c3c;
+            --border: #ecddd5;
+            --muted: #7a6f6a;
         }
 
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap');
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--dark) 0%, #1a1f3a 100%);
-            color: #fff;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fdf6f0 0%, #fff3ee 100%);
+            color: var(--dark);
             line-height: 1.6;
             overflow-x: hidden;
         }
@@ -41,7 +46,7 @@
             margin-bottom: 50px;
             position: relative;
             padding: 40px 20px;
-            border-bottom: 2px solid var(--accent);
+            border-bottom: 1px solid var(--border);
         }
 
         .logo {
@@ -56,22 +61,19 @@
             font-size: 3.5em;
             font-weight: 700;
             margin-bottom: 10px;
-            background: linear-gradient(135deg, #fff, var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--accent);
         }
 
         .model-info {
             font-size: 1.1em;
-            color: #aaa;
+            color: #7a6f6a;
             margin-top: 10px;
         }
 
         .model-badge {
             display: inline-block;
             background: var(--gold);
-            color: var(--dark);
+            color: #ffffff;
             padding: 8px 20px;
             border-radius: 50px;
             font-weight: 600;
@@ -88,9 +90,9 @@
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.05);
+            background: #ffffff;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid #ecddd5;
             border-radius: 12px;
             padding: 30px;
             transition: all 0.3s ease;
@@ -111,7 +113,7 @@
         .card:hover {
             border-color: var(--accent);
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(62, 166, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(211, 115, 55, 0.2);
         }
 
         .card h2 {
@@ -132,7 +134,7 @@
         .spec-item {
             margin-bottom: 15px;
             padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid #ecddd5;
         }
 
         .spec-item:last-child {
@@ -152,7 +154,7 @@
 
         .spec-value {
             font-size: 1.2em;
-            color: #fff;
+            color: var(--dark);
             font-weight: 500;
         }
 
@@ -165,7 +167,7 @@
         }
 
         .perf-box {
-            background: rgba(62, 166, 255, 0.1);
+            background: rgba(211, 115, 55, 0.1);
             border: 1px solid var(--accent);
             border-radius: 8px;
             padding: 15px;
@@ -181,14 +183,14 @@
 
         .perf-label {
             font-size: 0.85em;
-            color: #aaa;
+            color: #7a6f6a;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         /* Cockpit/Screen Section */
         .cockpit-section {
-            background: rgba(62, 166, 255, 0.08);
+            background: rgba(211, 115, 55, 0.08);
             border: 2px solid var(--accent);
             border-radius: 12px;
             padding: 30px;
@@ -223,7 +225,7 @@
 
         .screen-info {
             font-size: 0.95em;
-            color: #aaa;
+            color: #7a6f6a;
             margin-bottom: 10px;
         }
 
@@ -235,7 +237,7 @@
         }
 
         .stat {
-            background: rgba(255, 255, 255, 0.05);
+            background: #ffffff;
             padding: 15px;
             border-radius: 8px;
             border-left: 3px solid var(--accent);
@@ -249,7 +251,7 @@
 
         .stat-label {
             font-size: 0.8em;
-            color: #aaa;
+            color: #7a6f6a;
             margin-top: 5px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -262,7 +264,7 @@
         }
 
         .feature-item {
-            background: rgba(255, 255, 255, 0.05);
+            background: #ffffff;
             padding: 15px;
             border-radius: 8px;
             border-left: 3px solid var(--accent);
@@ -276,7 +278,7 @@
         .section-title {
             font-size: 2em;
             margin: 40px 0 25px 0;
-            color: #fff;
+            color: var(--dark);
             text-transform: uppercase;
             letter-spacing: 1px;
             border-bottom: 2px solid var(--accent);
@@ -298,7 +300,7 @@
 
         .pros {
             border-color: var(--success);
-            background: rgba(46, 204, 113, 0.08);
+            background: rgba(69, 154, 79, 0.08);
         }
 
         .cons {
@@ -342,11 +344,11 @@
 
         /* Design Section */
         .design-section {
-            background: rgba(255, 255, 255, 0.05);
+            background: #ffffff;
             padding: 30px;
             border-radius: 12px;
             margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid #ecddd5;
         }
 
         .design-section h3 {
@@ -357,16 +359,16 @@
 
         .design-section p {
             margin-bottom: 10px;
-            color: #ddd;
+            color: #7a6f6a;
         }
 
         /* Footer */
         footer {
             text-align: center;
             padding: 30px 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid #ecddd5;
             margin-top: 50px;
-            color: #888;
+            color: #7a6f6a;
             font-size: 0.9em;
         }
 
@@ -424,10 +426,83 @@
         .card:nth-child(4) {
             animation-delay: 0.3s;
         }
+
+        .brand-header{
+            background:linear-gradient(135deg,#fff8f4 0%,#fff3ee 100%);
+            border-bottom:1px solid var(--border);
+            padding:0 28px;display:flex;align-items:center;gap:14px;
+            height:76px;position:sticky;top:0;z-index:100;
+            box-shadow:0 2px 12px rgba(183,50,172,.08);
+        }
+        .logo-wrap{display:flex;align-items:center;gap:14px;flex-shrink:0;text-decoration:none;transition:opacity .15s}
+        .logo-wrap:hover{opacity:.75}
+        .logo-svg{width:46px;height:46px}
+        .brand-name{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:#b732ac;letter-spacing:-.01em}
+        .brand-sub{font-size:.68rem;color:#7a6f6a;letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
+        .more-details{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+        .more-details summary{
+            cursor:pointer;font-weight:700;font-size:.85rem;color:var(--accent);
+            list-style:none;display:flex;align-items:center;gap:6px;
+        }
+        .more-details summary::-webkit-details-marker{display:none}
+        .more-details summary::before{content:'▸';transition:transform .15s}
+        .more-details[open] summary::before{transform:rotate(90deg)}
+        .more-details .detail-content{margin-top:12px;font-size:.85rem;line-height:1.7;color:#404040}
+        .more-details .detail-content p{margin-bottom:8px}
+        .more-details .detail-content ul{margin:0 0 8px 18px}
+        .more-details .detail-content li{margin-bottom:4px}
     </style>
 </head>
 <body>
-<a href="../" style="position:fixed;top:16px;left:16px;z-index:9999;background:#b732ac;color:#fff;padding:8px 14px;border-radius:99px;font-family:sans-serif;font-size:13px;text-decoration:none;backdrop-filter:blur(4px);display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.2)">← apps.strids-focus.nl</a>
+<header class="brand-header">
+  <a class="logo-wrap" href="../" title="Terug naar overzicht">
+    <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="222 66 384 434">
+      <defs>
+        <mask id="strid-cut" maskUnits="userSpaceOnUse" x="222" y="66" width="384" height="434">
+          <rect x="222" y="66" width="384" height="434" fill="#fff"/>
+          <g transform="translate(231.874,-130.394)" fill="#000" stroke="#000" stroke-width="2">
+            <g><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.1 467.18 L107.16 467.18 L0 574.33 L0 595.28 Z"/></g>
+            <g transform="translate(449.652,49.897) rotate(60.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.28 466.99 L107.31 466.99 L0 574.3 L0 595.28 Z"/></g>
+            <g transform="translate(630.717,463.005) rotate(120)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L127.64 467.63 L106.77 467.63 L0 574.41 L0 595.28 Z"/></g>
+            <g transform="translate(365.565,826.193) rotate(179.7)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L126.6 468.68 L105.9 468.68 L0 574.58 L0 595.28 Z"/></g>
+            <g transform="translate(-84.9791,778.186) rotate(-120.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.08 467.2 L107.14 467.2 L0 574.34 L0 595.28 Z"/></g>
+            <g transform="translate(-267.486,365.713) rotate(-60.2)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L129.27 466 L108.14 466 L0 574.14 L0 595.28 Z"/></g>
+          </g>
+        </mask>
+      </defs>
+      <g mask="url(#strid-cut)"><g transform="translate(231.874,-130.394)">
+        <g fill="#b732ac" stroke="#b732ac" stroke-width="0.25">
+          <path transform="translate(9.35432,-124.256)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#67bde5" stroke="#67bde5" stroke-width="0.25" transform="translate(449.652,49.897) rotate(60.1)">
+          <path transform="translate(9.21649,-124.257)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#d37337" stroke="#d37337" stroke-width="0.25" transform="translate(630.717,463.005) rotate(120)">
+          <path transform="translate(9.39314,-124.115)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#9fbb3d" stroke="#9fbb3d" stroke-width="0.25" transform="translate(365.565,826.193) rotate(179.7)">
+          <path transform="translate(9.34106,-124.265)" d="M0 595.28 L108.85 595.28 L20.62 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#459a4f" stroke="#459a4f" stroke-width="0.25" transform="translate(-84.9791,778.186) rotate(-120.1)">
+          <path transform="translate(9.35409,-124.421)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#817870" stroke="#817870" stroke-width="0.25" transform="translate(-267.486,365.713) rotate(-60.2)">
+          <path transform="translate(9.27977,-124.051)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+      </g></g>
+    </svg>
+    <div>
+      <div class="brand-name">Strid's Focus</div>
+      <div class="brand-sub">Volvo EX30 — Samenvatting</div>
+    </div>
+  </a>
+</header>
     <div class="container">
         <header>
             <div class="logo">⚡ Electric Vehicle</div>
@@ -462,6 +537,18 @@
                     <div class="spec-label">Aandrijving</div>
                     <div class="spec-value">Achterwiel (RWD)</div>
                 </div>
+                <details class="more-details">
+                    <summary>Meer over motor & rijgedrag</summary>
+                    <div class="detail-content">
+                        <p>De EX30 Single Motor Extended Range gebruikt een <strong>permanent-magneet synchroonmotor (PMSM)</strong> op de achteras — compact, efficiënt en stil, met direct koppel vanaf stilstand.</p>
+                        <ul>
+                            <li><strong>Topsnelheid:</strong> elektronisch begrensd op 180 km/h</li>
+                            <li><strong>Rijmodi:</strong> normaal en "Performance" (directere gaspedaalrespons, geen tractiebeperking)</li>
+                            <li><strong>One-pedal driving:</strong> instelbaar regeneratief remmen (laag/standaard), voertuig kan tot stilstand afremmen zonder rempedaal</li>
+                            <li><strong>Creep-functie:</strong> uit te schakelen voor extra remenergie-terugwinning in stadsverkeer</li>
+                        </ul>
+                    </div>
+                </details>
             </div>
 
             <div class="card">
@@ -486,6 +573,19 @@
                     <div class="spec-label">AC Laden (7kW)</div>
                     <div class="spec-value">~8 uur tot 100%</div>
                 </div>
+                <details class="more-details">
+                    <summary>Meer over batterij, laden & garantie</summary>
+                    <div class="detail-content">
+                        <p>Belangrijk om te weten: de EX30 wordt geleverd met twee verschillende batterijchemieën. De <strong>Single Motor (Standard Range, 51 kWh)</strong> heeft een <strong>LFP-batterij</strong> (lithium-ijzerfosfaat); deze <strong>Extended Range-versie (64 kWh)</strong> heeft een <strong>NMC-batterij</strong> (nikkel-mangaan-kobalt) met hogere energiedichtheid.</p>
+                        <ul>
+                            <li><strong>Laadcurve:</strong> het piekvermogen van 153 kW wordt alleen bereikt in een smal SoC-venster (rond 10-30%); daarna neemt het vermogen geleidelijk af richting 80%</li>
+                            <li><strong>Voorconditioneren:</strong> bij navigeren naar een snellader verwarmt de auto de batterij automatisch voor, voor een snellere laadstart</li>
+                            <li><strong>V2L (Vehicle-to-Load):</strong> via een adapter kan de auto externe apparaten van stroom voorzien</li>
+                            <li><strong>Batterijgarantie:</strong> 8 jaar / 160.000 km, met garantie op minimaal 70% resterende capaciteit</li>
+                            <li><strong>Praktijkverbruik:</strong> de WLTP-norm (275 km) is een laboratoriumwaarde; in de praktijk (gemengd gebruik, winter) ligt de werkelijke actieradius vaak 15-25% lager</li>
+                        </ul>
+                    </div>
+                </details>
             </div>
 
             <div class="card">
@@ -510,6 +610,19 @@
                     <div class="spec-label">Zitplaatsen</div>
                     <div class="spec-value">5 personen</div>
                 </div>
+                <details class="more-details">
+                    <summary>Meer over praktisch gebruik</summary>
+                    <div class="detail-content">
+                        <ul>
+                            <li><strong>Wielbasis:</strong> 2.650 mm — relatief lang voor de compacte buitenmaat, goed voor beenruimte achterin</li>
+                            <li><strong>Bodemvrijheid:</strong> circa 165 mm</li>
+                            <li><strong>Draaicirkel:</strong> ca. 10,8 m — wendbaar in de stad</li>
+                            <li><strong>Trekgewicht:</strong> tot 1.000 kg geremd (afhankelijk van uitvoering)</li>
+                            <li><strong>ISOFIX:</strong> bevestigingspunten op de buitenste achterzittingen</li>
+                            <li><strong>Frunk:</strong> de EX30 heeft <em>geen</em> voorbak (frunk) — alle opslag bevindt zich in de kofferbak en het verlengbare dashboardvak</li>
+                        </ul>
+                    </div>
+                </details>
             </div>
 
             <div class="card">
@@ -534,6 +647,18 @@
                     <div class="spec-label">Grille</div>
                     <div class="spec-value">Volledig gesloten</div>
                 </div>
+                <details class="more-details">
+                    <summary>Meer over materialen & duurzaamheid</summary>
+                    <div class="detail-content">
+                        <p>Volvo profileert de EX30 nadrukkelijk als duurzaamste model tot nu toe: het interieur bevat onder meer <strong>gerecycled denim</strong> (in textiel voor portieren en stoelen) en composieten op basis van <strong>vlas</strong> als alternatief voor plastic panelen.</p>
+                        <ul>
+                            <li><strong>Wielen:</strong> 18" of 19" lichtmetaal, afhankelijk van uitvoering</li>
+                            <li><strong>Kleuren:</strong> diverse exterieurkleuren leverbaar; "Black Edition" voegt een zwart afgewerkte grille, spiegelkappen en wielen toe</li>
+                            <li><strong>Verlichting:</strong> de Thor's Hammer-signatuur (dagrijverlichting) en Viking Axe-achterlichten zijn kenmerkend voor moderne Volvo-modellen</li>
+                            <li><strong>CO₂-voetafdruk:</strong> Volvo publiceert een levenscyclusanalyse (LCA) per model — bij de EX30 is dit een belangrijk onderdeel van de marketing t.o.v. branchegenoten</li>
+                        </ul>
+                    </div>
+                </details>
             </div>
         </div>
 
@@ -544,7 +669,7 @@
             <div class="screen-visual">
                 <div class="screen-display">12.3"</div>
                 <div class="screen-info">Verticaal touchscreen • Snapdragon 8155</div>
-                <p style="color: #888; margin-top: 10px; font-size: 0.9em;">Google Integrated Services • Wireless Android Auto & Apple CarPlay</p>
+                <p style="color: #7a6f6a; margin-top: 10px; font-size: 0.9em;">Google Integrated Services • Wireless Android Auto & Apple CarPlay</p>
             </div>
 
             <div class="screen-stats">
@@ -606,6 +731,19 @@
                     Automatische noodremming (AEB), blind spot monitoring, achteruitrijcamera, parkeerassistent weergave
                 </div>
             </div>
+
+            <details class="more-details" style="margin-top:24px">
+                <summary>Meer over software & de "geen-knoppen"-filosofie</summary>
+                <div class="detail-content">
+                    <p>De EX30 zet de trend door die Volvo met de EX90 en de C40 inzette: vrijwel <strong>alle bediening loopt via het centrale 12.3"-scherm</strong>. Alleen de raamknoppen, alarmlichten, handschoenkastje-opener en het rijrichting-keuzewieltje achter het stuur zijn nog fysiek.</p>
+                    <ul>
+                        <li><strong>Voor- en nadelen:</strong> minder fysieke knoppen geeft een rustig, minimalistisch interieur, maar vraagt gewenning — sommige functies (bv. buitenspiegels verstellen, ruitenwissersnelheid) zitten verstopt in menu's, wat tijdens het rijden afleidend kan zijn.</li>
+                        <li><strong>OTA-updates:</strong> software-updates worden draadloos geïnstalleerd, vergelijkbaar met een smartphone — Volvo voegt zo na aankoop functies toe of verbetert bestaande (bv. laadcurve-optimalisatie, nieuwe Google-features).</li>
+                        <li><strong>Google built-in:</strong> Google Maps, Google Assistant en de Google Play Store draaien native in het systeem (geen los telefoonscherm nodig), naast draadloze Apple CarPlay/Android Auto voor wie de eigen telefoon-ecosysteem prefereert.</li>
+                        <li><strong>Privacy:</strong> gebruik van Google-diensten betekent dat een Google-account gekoppeld kan worden — voor wie dat niet wil, blijven basisfuncties (navigatie via CarPlay/Android Auto) beschikbaar.</li>
+                    </ul>
+                </div>
+            </details>
         </section>
 
         <!-- Pros & Cons -->
@@ -662,7 +800,7 @@
         </div>
 
         <!-- Summary -->
-        <section style="background: rgba(62, 166, 255, 0.08); padding: 30px; border-radius: 12px; border-left: 4px solid var(--accent); margin-bottom: 50px;">
+        <section style="background: rgba(211, 115, 55, 0.08); padding: 30px; border-radius: 12px; border-left: 4px solid var(--accent); margin-bottom: 50px;">
             <h2 style="color: var(--accent); margin-bottom: 15px;">Samenvatting</h2>
             <p style="font-size: 1.05em; line-height: 1.8;">
                 De <strong>Volvo EX30 200kW Single Motor Extended Range Plus Black Edition</strong> is een stijlvol, duurzaam en modern elektrisch voertuig dat perfect past in de huishoudens van stadsrijders, pendelaars en jonge professionals. Met zijn 268 pk motor, luxe interieur en geavanceerde Google-geïntegreerde infotainment biedt het een naadloze combinatie van prestatie, technologie en duurzaamheid.

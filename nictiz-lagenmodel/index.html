@@ -8,9 +8,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
-  --purple:#b732ac; --blue:#67bde5; --orange:#d37337;
+  --purple:#b732ac; --cat:#2e7d32; --blue:#67bde5; --orange:#d37337;
   --lime:#9fbb3d; --green:#459a4f; --gray:#817870;
-  --bg:#fdf6f0; --surface:#ffffff; --text:#1f1a17;
+  --bg:#fdf6f0; --surface:#ffffff; --text:#404040;
   --muted:#7a6f6a; --border:#ecddd5; --radius:16px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -95,6 +95,48 @@ header{
   .side-col span{font-size:.65rem}
   .layer-name{font-size:.85rem}
 }
+.tabnav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;justify-content:center}
+.tab-btn{
+  padding:9px 18px;border-radius:99px;border:1.5px solid var(--border);
+  background:var(--surface);font-size:.85rem;font-weight:600;cursor:pointer;
+  color:#404040;transition:all .15s;font-family:'Inter',sans-serif;
+}
+.tab-btn.active{background:var(--cat);color:#fff;border-color:var(--cat)}
+.tab-btn:hover:not(.active){border-color:var(--cat);color:var(--cat)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:20px}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+.info-card h3{font-family:'Playfair Display',serif;font-size:1.05rem;margin-bottom:8px;color:var(--cat)}
+.info-card p{font-size:.85rem;line-height:1.6;color:#404040;margin:0}
+
+.acc-item{border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;background:var(--surface);cursor:pointer}
+.acc-head{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:.92rem;color:#404040}
+.acc-head .chev{transition:transform .2s;color:var(--cat);flex-shrink:0;margin-left:10px}
+.acc-item.open .chev{transform:rotate(180deg)}
+.acc-body{display:none;padding:0 18px 16px;font-size:.85rem;line-height:1.65;color:#404040;cursor:default}
+.acc-item.open .acc-body{display:block}
+.acc-body p{margin-bottom:10px}
+.acc-body p:last-child{margin-bottom:0}
+
+.timeline2{display:flex;flex-direction:column;gap:2px;margin:14px 0 4px}
+.tl-item{display:flex;gap:14px;padding:8px 0;border-left:2px solid var(--border);padding-left:18px;position:relative;margin-left:6px}
+.tl-item::before{content:'';position:absolute;left:-7px;top:14px;width:12px;height:12px;border-radius:50%;background:var(--cat)}
+.tl-date{font-family:'Space Mono',monospace;font-size:.72rem;font-weight:700;color:var(--cat);min-width:80px;flex-shrink:0}
+.tl-text{font-size:.85rem;line-height:1.55}
+
+.stack-flow{display:flex;flex-direction:column;gap:2px;margin:16px 0}
+.stack-box{background:var(--surface);border:1.5px solid var(--cat);border-radius:10px;padding:12px 16px;font-size:.82rem;font-weight:700;text-align:center;color:#404040}
+.stack-arrow{text-align:center;color:var(--cat);font-size:1.1rem;line-height:1.4}
+
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pill{background:var(--bg);border:1px solid var(--border);border-radius:99px;padding:4px 12px;font-size:.76rem;font-weight:600;color:#404040}
+
+@media(max-width:560px){
+  .info-grid{grid-template-columns:1fr}
+  .tab-btn{font-size:.78rem;padding:8px 14px}
+}
 </style>
 </head>
 <body>
@@ -144,15 +186,28 @@ header{
     </svg>
     <div>
       <div class="brand-name">Strid's Focus</div>
-      <div class="brand-sub">Nictiz 5-lagenmodel</div>
+      <div class="brand-sub">Gegevensuitwisseling in de Zorg</div>
     </div>
   </a>
-  <div class="header-right">Interoperabiliteit in de zorg, laag voor laag</div>
+  <div class="header-right">Interoperabiliteit, wetgeving & standaarden — op basis van Nictiz.nl</div>
 </header>
 
 <div class="wrap">
   <div class="hero">
-    <h1>Het Nictiz lagenmodel</h1>
+    <h1>Gegevensuitwisseling in de zorg</h1>
+    <p>Een interactieve gids door het Nederlandse (en Europese) zorg-ICT-landschap: het Nictiz-lagenmodel, de belangrijkste wetgeving (Wegiz, EHDS), de standaarden waarmee gegevens worden uitgewisseld (zibs, FHIR, openEHR, CumuluZ) en de landelijke architectuur en voorzieningen (Twiin, MedMij, LSP, Mitz). Kies hieronder een onderwerp.</p>
+  </div>
+
+  <div class="tabnav">
+    <button class="tab-btn active" onclick="showTab('lagen')">🧱 5-lagenmodel</button>
+    <button class="tab-btn" onclick="showTab('wet')">⚖️ Wetgeving</button>
+    <button class="tab-btn" onclick="showTab('standaarden')">🔗 Standaarden</button>
+    <button class="tab-btn" onclick="showTab('architectuur')">🏗️ Architectuur & voorzieningen</button>
+  </div>
+
+  <div class="tab-panel active" data-tab="lagen">
+  <div class="hero" style="margin-bottom:20px">
+    <h1 style="font-size:1.5rem">Het Nictiz 5-lagenmodel</h1>
     <p>Voor interoperabiliteit tussen zorgorganisaties moeten op vijf niveaus afspraken worden gemaakt — elk met eigen actoren, begrippen en standaarden. Twee kolommen (wet- en regelgeving en beveiliging) gelden op élke laag. Klik op een laag of kolom voor details.</p>
   </div>
 
@@ -171,7 +226,185 @@ header{
   <div class="note">
     💡 Interoperabiliteit ontstaat pas als de afspraken op élke laag op elkaar aansluiten — én voldoen aan wet- en regelgeving en beveiligingseisen. Een mismatch op één laag (bijv. een technisch correcte koppeling zonder eenduidige informatieafspraken) levert nog geen werkende uitwisseling op.
   </div>
-</div>
+  </div><!-- /tab-panel lagen -->
+
+  <!-- ══════════════ TAB: WETGEVING ══════════════ -->
+  <div class="tab-panel" data-tab="wet">
+    <div class="hero" style="margin-bottom:20px">
+      <h1 style="font-size:1.5rem">Wetgeving: Wegiz & EHDS</h1>
+      <p>Twee wetten bepalen momenteel de koers van gegevensuitwisseling in de zorg: de Nederlandse Wegiz (sinds 2023) en de Europese EHDS (sinds 2025). Ze groeien naar elkaar toe, maar Europese regelgeving krijgt voorrang.</p>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>⚖️ Wegiz — Wet elektronische gegevensuitwisseling in de zorg</h3>
+        <p>Van kracht sinds <strong>1 juli 2023</strong>. Het is een <em>kaderwet</em>: ze bepaalt niet wat er wordt uitgewisseld, maar verplicht dát het — waar afgesproken — elektronisch gebeurt, en hoe (taal & techniek).</p>
+        <div class="pill-row">
+          <span class="pill">Kaderwet</span>
+          <span class="pill">AMvB's = Begiz</span>
+          <span class="pill">Spoor 1: elektronisch</span>
+          <span class="pill">Spoor 2: gestructureerd/interoperabel</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <h3>🇪🇺 EHDS — European Health Data Space</h3>
+        <p>EU-Verordening <strong>2025/327</strong>, in werking sinds <strong>26 maart 2025</strong>. Regelt grensoverschrijdende uitwisseling van gezondheidsgegevens én hergebruik voor onderzoek/beleid. Nederland moet uiterlijk <strong>2031</strong> volledig voldoen.</p>
+        <div class="pill-row">
+          <span class="pill">Primair gebruik</span>
+          <span class="pill">Secundair gebruik</span>
+          <span class="pill">MyHealth@EU</span>
+          <span class="pill">ADG & HDAB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="acc-item" onclick="toggleAcc(this)">
+      <div class="acc-head"><span>📋 De vier (plus één) prioritaire Wegiz-uitwisselingen</span><span class="chev">▾</span></div>
+      <div class="acc-body">
+        <p>De <strong>Meerjarenagenda Wegiz</strong> bepaalt welke gegevensuitwisselingen als eerste verplicht elektronisch én gestandaardiseerd moeten verlopen:</p>
+        <div class="timeline2">
+          <div class="tl-item"><div class="tl-date">BgZ</div><div class="tl-text"><strong>Basisgegevensset Zorg</strong> tussen medisch-specialistische instellingen — de minimale set patiëntgegevens (NAW, allergieën, labuitslagen) die elke zorgverlener nodig heeft.</div></div>
+          <div class="tl-item"><div class="tl-date">eOverdracht</div><div class="tl-text">Verpleegkundige <strong>overdracht</strong> tussen zorgaanbieders (bv. ziekenhuis → thuiszorg).</div></div>
+          <div class="tl-item"><div class="tl-date">Beeld</div><div class="tl-text"><strong>Beeldbeschikbaarheid</strong> — uitwisselen van röntgenfoto's, scans e.d. Wordt momenteel samen met MedMij omgevormd tot één EHDS-conforme standaard (2026).</div></div>
+          <div class="tl-item"><div class="tl-date">Medicatie</div><div class="tl-text"><strong>Medicatieoverdracht</strong> — digitaal recept / ter hand stellen tussen voorschrijver en apotheek.</div></div>
+          <div class="tl-item"><div class="tl-date">+ Acute zorg</div><div class="tl-text">Toegevoegd vanuit het <strong>Integraal Zorgakkoord (IZA)</strong> als vijfde prioriteit.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="acc-item" onclick="toggleAcc(this)">
+      <div class="acc-head"><span>🇪🇺 Wat verandert de EHDS concreet?</span><span class="chev">▾</span></div>
+      <div class="acc-body">
+        <p><strong>Primair gebruik</strong> (directe zorgverlening): burgers krijgen het recht hun elektronische gezondheidsgegevens gratis in te zien, te downloaden en te delen met een zorgverlener — ook in een ander EU-land. De technische ruggengraat hiervoor is <strong>MyHealth@EU</strong>. Vanaf maart 2029 moeten patiëntsamenvatting en e-recept EU-breed uitwisselbaar zijn; beeldvorming, labresultaten en ontslagbrieven volgen vanaf 2031.</p>
+        <p><strong>Secundair gebruik</strong> (onderzoek, innovatie, beleid): toegang tot gezondheidsdata voor onderzoek wordt een recht in plaats van een gunst, via een <strong>Health Data Access Body (HDAB)</strong>.</p>
+        <p>Nieuwe instanties: de <strong>Autoriteit voor Digitale Gezondheid (ADG)</strong> houdt toezicht; <strong>HDAB</strong> verleent toegang voor secundair gebruik. EPD-leveranciers worden EHDS-conform via zelfbeoordeling (de Wegiz-derdencertificering verdwijnt).</p>
+      </div>
+    </div>
+
+    <div class="acc-item" onclick="toggleAcc(this)">
+      <div class="acc-head"><span>🔄 Hoe verhouden Wegiz en EHDS zich tot elkaar?</span><span class="chev">▾</span></div>
+      <div class="acc-body">
+        <p>Onderzoek van Nictiz (fit-gap analyse) laat <strong>veel overlap</strong> zien tussen Wegiz-uitwisselingen en de EHDS-categorieën — bijvoorbeeld voldoet de BgZ MSZ al goeddeels aan de Europese patiëntsamenvatting. Waar verschillen bestaan, stemt Nederland met andere lidstaten af.</p>
+        <p>Praktisch betekent dit: <strong>Wegiz-trajecten blijven tot 2029 onverkort van kracht</strong> en vormen de opstap naar de EHDS. VWS gebruikt de geprioriteerde EHDS-categorieën als basis voor nieuw beleid; nationale Wegiz-doelen vullen dit aan waar relevant. Bij strijdigheid heeft de Europese verordening voorrang.</p>
+      </div>
+    </div>
+
+    <div class="note">
+      💡 Voor de praktijk: elke nieuwe AMvB onder de Wegiz raakt — net als bij het 5-lagenmodel — alle vijf lagen tegelijk. De EHDS voegt daar een Europese laag boven: dezelfde gegevens moeten straks ook over de grens herkenbaar en bruikbaar zijn.
+    </div>
+  </div><!-- /tab-panel wet -->
+
+  <!-- ══════════════ TAB: STANDAARDEN ══════════════ -->
+  <div class="tab-panel" data-tab="standaarden">
+    <div class="hero" style="margin-bottom:20px">
+      <h1 style="font-size:1.5rem">Standaarden voor gegevensuitwisseling</h1>
+      <p>Eén zorgconcept (bijvoorbeeld "bloeddruk" of "medicatie") doorloopt meerdere lagen voordat het daadwerkelijk tussen systemen uitgewisseld wordt. Dit schema laat zien hoe de belangrijkste standaarden zich tot elkaar verhouden.</p>
+    </div>
+
+    <div class="stack-flow">
+      <div class="stack-row"><div class="stack-box">Zorgproces — wat moet worden vastgelegd? (laag 2/3)</div></div>
+      <div class="stack-arrow">↓</div>
+      <div class="stack-row"><div class="stack-box">Zib's (Zorginformatiebouwstenen) — functionele/informatie­modellen, herbruikbare concepten (NAW, medicatie, bloeddruk), gecodeerd met SNOMED CT / LOINC</div></div>
+      <div class="stack-arrow">↓</div>
+      <div class="stack-row"><div class="stack-box">BgZ — minimale dataset, samengesteld uit zib's</div></div>
+      <div class="stack-arrow">↓ mapping naar technische standaard ↓</div>
+      <div class="stack-row"><div class="stack-box">HL7 FHIR-profielen (Nictiz R4 Implementation Guide) en/of HL7 CDA-documenten</div></div>
+      <div class="stack-arrow">↓</div>
+      <div class="stack-row"><div class="stack-box">Toepassingen: MedMij/PGO's, LSP/AORTA, ziekenhuis-koppelvlakken</div></div>
+    </div>
+
+    <div class="acc-item" onclick="toggleAcc(this)">
+      <div class="acc-head"><span>🧩 Zib's — de informatielaag</span><span class="chev">▾</span></div>
+      <div class="acc-body">
+        <p>Een <strong>zorginformatiebouwsteen (zib)</strong> legt vast <em>wat</em> er over een zorgconcept wordt geregistreerd: welke gegevenselementen, datatypes, kardinaliteit en codestelsels (vooral SNOMED CT en LOINC). Zib's zijn <strong>technologie-onafhankelijk</strong> — ze beschrijven de informatielaag, niet de techniek.</p>
+        <p>Door use-case-specifieke informatiestandaarden (zoals de BgZ of eOverdracht) op te bouwen uit dezelfde zib's, worden concepten als "medicatie" of "allergie" overal op dezelfde manier gedefinieerd — de basis voor semantische interoperabiliteit.</p>
+      </div>
+    </div>
+
+    <div class="acc-item" onclick="toggleAcc(this)">
+      <div class="acc-head"><span>🔌 HL7 FHIR — de moderne technische standaard</span><span class="chev">▾</span></div>
+      <div class="acc-body">
+        <p><strong>FHIR (Fast Healthcare Interoperability Resources)</strong> is de actuele HL7-standaard voor gegevensuitwisseling via API's/koppelvlakken — opgebouwd uit "resources" (Patient, Observation, MedicationRequest, ...). Nictiz onderhoudt een <strong>FHIR R4 Implementation Guide</strong> met Nederlandse profielen die de zib's representeren.</p>
+        <p>Vrijwel elk FHIR-profiel is direct gemapt op één of meerdere zib's (bv. het profiel "Patiënt" mapt op 6 zib's: Patient, BurgerlijkeStaat, Contactpersoon, Zorgverlener, Nationaliteit, Betaler). MedMij-standaarden voor PGO's zijn vanaf het begin op deze FHIR-profielen gebaseerd.</p>
+      </div>
+    </div>
+
+    <div class="acc-item" onclick="toggleAcc(this)">
+      <div class="acc-head"><span>📄 HL7 CDA — documentuitwisseling</span><span class="chev">▾</span></div>
+      <div class="acc-body">
+        <p><strong>CDA (Clinical Document Architecture)</strong> is de oudere HL7v3-standaard voor het uitwisselen van complete <em>documenten</em> (verwijsbrieven, ontslagbrieven, samenvattingen) — naast losse gestructureerde data (FHIR) blijft documentuitwisseling belangrijk, denk aan patiëntbrieven, notities, beelden en video's.</p>
+        <p>Nictiz adviseert om binnen het stelsel van informatiestandaarden niet meer dan twee "baselineversies" van generieke standaarden toe te staan (een huidige en een toekomstige), met migratiepaden voor uitfasering — relevant voor de overgang van CDA naar FHIR.</p>
+      </div>
+    </div>
+
+    <div class="acc-item" onclick="toggleAcc(this)">
+      <div class="acc-head"><span>🌐 openEHR — een ander informatiemodel</span><span class="chev">▾</span></div>
+      <div class="acc-body">
+        <p><strong>openEHR</strong> is een internationaal open standaard/architectuur voor het <em>vastleggen</em> (verwerken) van klinische data via "archetypes" en templates — vergelijkbaar in doel met zib's, maar met een andere technische aanpak en herkomst.</p>
+        <p>Nictiz hanteert een "specificatie-canvas" waarin standaarden worden uitgezet op twee assen: <strong>uitwisseling</strong> versus <strong>verwerking (vastlegging)</strong>, en <strong>zorginhoudelijk</strong> versus <strong>technisch</strong>. Zib's/FHIR/CDA zitten vooral aan de uitwisselingskant; openEHR vooral aan de verwerkingskant — bij sommige EPD's en regionale projecten wordt openEHR als onderliggend datamodel gebruikt, met FHIR als uitwisselformaat ernaartoe.</p>
+      </div>
+    </div>
+
+    <div class="acc-item" onclick="toggleAcc(this)">
+      <div class="acc-head"><span>🧭 CumuluZ — naar één informatiemodel?</span><span class="chev">▾</span></div>
+      <div class="acc-body">
+        <p><strong>CumuluZ</strong> is een initiatief/discussierichting die voortbouwt op het Nictiz-canvas en de vraag stelt hoe zib's, FHIR en openEHR zich tot elkaar verhouden — en of (delen van) deze werelden samengebracht kunnen worden tot een consistenter informatiemodel voor de hele sector, in lijn met de EHDS-ambities.</p>
+        <p>Het is nog geen vastgestelde standaard, maar een richting die laat zien dat de discussie over "één taal voor zorgdata" volop in ontwikkeling is — relevant voor iedereen die nu architectuurkeuzes maakt met een blik op 2030+.</p>
+      </div>
+    </div>
+  </div><!-- /tab-panel standaarden -->
+
+  <!-- ══════════════ TAB: ARCHITECTUUR & VOORZIENINGEN ══════════════ -->
+  <div class="tab-panel" data-tab="architectuur">
+    <div class="hero" style="margin-bottom:20px">
+      <h1 style="font-size:1.5rem">Landelijke architectuur & voorzieningen</h1>
+      <p>Sinds de Nationale Visie en Strategie (NVS, 2023) werkt Nederland toe naar één samenhangend <strong>Gezondheidsinformatiestelsel (GIS)</strong>. Dat moet een lappendeken van losse afsprakenstelsels en voorzieningen vervangen door een herkenbare, landelijke structuur.</p>
+    </div>
+
+    <div class="acc-item open" onclick="toggleAcc(this)">
+      <div class="acc-head"><span>🗺️ Het Gezondheidsinformatiestelsel (GIS) in 3 plateaus</span><span class="chev">▾</span></div>
+      <div class="acc-body">
+        <p>De GIS-architectuur (voorheen "doelarchitectuur") beschrijft principes, bouwstenen en hun samenhang, en wordt gefaseerd gerealiseerd:</p>
+        <div class="timeline2">
+          <div class="tl-item"><div class="tl-date">Plateau 1</div><div class="tl-text"><strong>"Interoperabiliteit georganiseerd"</strong> — moet eind 2026 gereed zijn. Focus: landelijke gegevensuitwisseling op orde, bestaande afsprakenstelsels (AORTA, MedMij, Mitz, Nuts, Twiin, ...) op elkaar aansluiten via een <strong>Landelijk Vertrouwensstelsel</strong> (gebaseerd op het Twiin-afsprakenstelsel).</div></div>
+          <div class="tl-item"><div class="tl-date">Plateau 2</div><div class="tl-text">Verbreding van databeschikbaarheid, met oog voor AI en de EHDS-verplichtingen die vanaf 2027/2029 ingaan.</div></div>
+          <div class="tl-item"><div class="tl-date">Plateau 3</div><div class="tl-text">Volledige aansluiting op de EHDS (2031/2035) en een publiek toegankelijk "Mijn Gezondheidsoverzicht" (naar analogie van Mijn Pensioenoverzicht).</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>🔀 LSP / AORTA (VZVZ)</h3>
+        <p>Het <strong>Landelijk Schakelpunt</strong> ontsluit gegevens bij waarneming/spoed. Ontwikkelt zich tot een open stelsel van gemeenschappelijke diensten en wordt gekoppeld aan Twiin en MedMij.</p>
+      </div>
+      <div class="info-card">
+        <h3>📲 MedMij</h3>
+        <p>Het afsprakenstelsel waarmee burgers via een <strong>PGO (Persoonlijke Gezondheidsomgeving)</strong> hun gegevens bij zorgaanbieders kunnen ophalen — gebaseerd op FHIR-profielen die direct uit de zib's zijn afgeleid.</p>
+      </div>
+      <div class="info-card">
+        <h3>✅ Mitz</h3>
+        <p>De landelijke <strong>onlinetoestemmingsvoorziening</strong>: hiermee geven patiënten zelf aan welke zorgverleners hun gegevens (bv. via het LSP) mogen opvragen. Sinds 2024/2025 in landelijke uitrol, GGZ als koploper.</p>
+      </div>
+      <div class="info-card">
+        <h3>🔐 Nuts</h3>
+        <p>Een open-source <strong>technische vertrouwensinfrastructuur</strong> waarmee softwareapplicaties in de zorg elkaar veilig kunnen identificeren en autoriseren — bouwsteen onder verschillende afsprakenstelsels.</p>
+      </div>
+      <div class="info-card">
+        <h3>🤝 Twiin</h3>
+        <p>Een <strong>afsprakenstelsel</strong> (van ZN, RSO Nederland en VZVZ) dat op alle vijf lagen van het Nictiz-model afspraken vastlegt voor regionale/landelijke gegevensuitwisseling. Door VWS aangewezen als <strong>basis voor het Landelijk Vertrouwensstelsel</strong>.</p>
+      </div>
+      <div class="info-card">
+        <h3>🏛️ Wie doet wat? (governance)</h3>
+        <p><strong>VWS</strong> is "stelselhouder" met doorzettingsmacht en is financier. <strong>Nictiz</strong> is "stelselbeheerder": bewaakt de samenhang en adviseert bij afwijkingen. <strong>Twiin</strong> blijft verantwoordelijk voor uitvoering/operationalisering van de afspraken binnen het landelijke kader.</p>
+      </div>
+    </div>
+
+    <div class="note">
+      💡 Herkenbaar patroon: elk van deze voorzieningen en afsprakenstelsels moet — net als bij de Wegiz-uitwisselingen — uiteindelijk op <em>alle vijf lagen</em> van het Nictiz-model afspraken kloppend hebben: van bestuurlijke samenwerking tot de IT-infrastructuur. Het 5-lagenmodel (eerste tab) is dus niet alleen een denkmodel, maar de toetssteen waarmee Twiin, Nictiz en VWS deze landelijke voorzieningen beoordelen.
+    </div>
+  </div><!-- /tab-panel architectuur -->
+</div><!-- /wrap -->
 
 <script>
 const LAYERS = [
@@ -267,6 +500,22 @@ function select(id){
 }
 
 select(3); // start met de informatielaag
+
+// ══════════════════════════════════════════
+// TABS & ACCORDIONS
+// ══════════════════════════════════════════
+function showTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.tab === name));
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const tabs = ['lagen','wet','standaarden','architectuur'];
+    b.classList.toggle('active', tabs[i] === name);
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function toggleAcc(el){
+  el.classList.toggle('open');
+}
 </script>
 </body>
 </html>

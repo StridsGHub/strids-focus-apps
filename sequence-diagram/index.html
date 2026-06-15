@@ -8,12 +8,75 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 <style>
-  html, body { margin: 0; padding: 0; }
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap');
+  html, body { margin: 0; padding: 0; background:linear-gradient(135deg,#fdf6f0 0%,#fff3ee 100%); }
   #root { min-height: 100vh; }
+
+  .brand-header{
+    background:linear-gradient(135deg,#fff8f4 0%,#fff3ee 100%);
+    border-bottom:1px solid #ecddd5;
+    padding:0 28px;display:flex;align-items:center;gap:14px;
+    height:76px;position:sticky;top:0;z-index:9999;
+    box-shadow:0 2px 12px rgba(183,50,172,.08);
+    font-family:'Inter',sans-serif;
+  }
+  .logo-wrap{display:flex;align-items:center;gap:14px;flex-shrink:0;text-decoration:none;transition:opacity .15s}
+  .logo-wrap:hover{opacity:.75}
+  .logo-svg{width:46px;height:46px}
+  .brand-name{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:#b732ac;letter-spacing:-.01em}
+  .brand-sub{font-size:.68rem;color:#7a6f6a;letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
 </style>
 </head>
 <body>
-<a href="../" style="position:fixed;top:16px;left:16px;z-index:9999;background:#b732ac;color:#fff;padding:8px 14px;border-radius:99px;font-family:sans-serif;font-size:13px;text-decoration:none;backdrop-filter:blur(4px);display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.2)">← apps.strids-focus.nl</a>
+<header class="brand-header">
+  <a class="logo-wrap" href="../" title="Terug naar overzicht">
+    <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="222 66 384 434">
+      <defs>
+        <mask id="strid-cut" maskUnits="userSpaceOnUse" x="222" y="66" width="384" height="434">
+          <rect x="222" y="66" width="384" height="434" fill="#fff"/>
+          <g transform="translate(231.874,-130.394)" fill="#000" stroke="#000" stroke-width="2">
+            <g><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.1 467.18 L107.16 467.18 L0 574.33 L0 595.28 Z"/></g>
+            <g transform="translate(449.652,49.897) rotate(60.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.28 466.99 L107.31 466.99 L0 574.3 L0 595.28 Z"/></g>
+            <g transform="translate(630.717,463.005) rotate(120)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L127.64 467.63 L106.77 467.63 L0 574.41 L0 595.28 Z"/></g>
+            <g transform="translate(365.565,826.193) rotate(179.7)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L126.6 468.68 L105.9 468.68 L0 574.58 L0 595.28 Z"/></g>
+            <g transform="translate(-84.9791,778.186) rotate(-120.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.08 467.2 L107.14 467.2 L0 574.34 L0 595.28 Z"/></g>
+            <g transform="translate(-267.486,365.713) rotate(-60.2)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L129.27 466 L108.14 466 L0 574.14 L0 595.28 Z"/></g>
+          </g>
+        </mask>
+      </defs>
+      <g mask="url(#strid-cut)"><g transform="translate(231.874,-130.394)">
+        <g fill="#b732ac" stroke="#b732ac" stroke-width="0.25">
+          <path transform="translate(9.35432,-124.256)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#67bde5" stroke="#67bde5" stroke-width="0.25" transform="translate(449.652,49.897) rotate(60.1)">
+          <path transform="translate(9.21649,-124.257)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#d37337" stroke="#d37337" stroke-width="0.25" transform="translate(630.717,463.005) rotate(120)">
+          <path transform="translate(9.39314,-124.115)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#9fbb3d" stroke="#9fbb3d" stroke-width="0.25" transform="translate(365.565,826.193) rotate(179.7)">
+          <path transform="translate(9.34106,-124.265)" d="M0 595.28 L108.85 595.28 L20.62 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#459a4f" stroke="#459a4f" stroke-width="0.25" transform="translate(-84.9791,778.186) rotate(-120.1)">
+          <path transform="translate(9.35409,-124.421)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#817870" stroke="#817870" stroke-width="0.25" transform="translate(-267.486,365.713) rotate(-60.2)">
+          <path transform="translate(9.27977,-124.051)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+      </g></g>
+    </svg>
+    <div>
+      <div class="brand-name">Strid's Focus</div>
+      <div class="brand-sub">Sequence Diagram Studio</div>
+    </div>
+  </a>
+</header>
 <div id="root"></div>
 <script>
 
@@ -139,7 +202,7 @@ const PALETTE_STD = [
   { hex: "#A48A00", label: "Oker" },
 ];
 const PALETTE_NICTIZ = [
-  { hex: "#B732AC", label: "Nictiz — Organisatiebeleid" },
+  { hex: "#2e7d32", label: "Nictiz — Organisatiebeleid" },
   { hex: "#67BDE5", label: "Nictiz — Zorgproces" },
   { hex: "#D37337", label: "Nictiz — Informatie" },
   { hex: "#9FBB3D", label: "Nictiz — Applicatie" },
@@ -944,7 +1007,7 @@ const S = {
   btn: (variant = "primary") => ({
     padding: "9px 16px", borderRadius: 8, fontSize: 13.5, fontWeight: 600,
     cursor: "pointer", border: "none", fontFamily: "inherit", whiteSpace: "nowrap",
-    ...(variant === "primary" && { background: "#0E6E8C", color: "#FFF" }),
+    ...(variant === "primary" && { background: "#2e7d32", color: "#FFF" }),
     ...(variant === "ghost" && { background: "#EEF4F6", color: "#1B3A47" }),
     ...(variant === "danger" && { background: "#FBE9E9", color: "#A33232" }),
     ...(variant === "subtle" && { background: "transparent", color: "#456472", padding: "5px 5px", flexShrink: 0 }),
@@ -1439,7 +1502,7 @@ function Editor({ initial, onSave, onBack, toast }) {
                   style={{ background: flash === s.id ? "#FFE2A0" : "#F6FAFB", opacity: s.skip ? 0.55 : 1, borderRadius: 10, padding: "10px 12px", transition: "background 0.6s" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
                     <span style={{
-                      width: 22, height: 22, borderRadius: "50%", background: s.kind === "note" ? "#8AA2AC" : s.skip ? "#9FB3BC" : "#0E6E8C", color: "#FFF",
+                      width: 22, height: 22, borderRadius: "50%", background: s.kind === "note" ? "#8AA2AC" : s.skip ? "#9FB3BC" : "#2e7d32", color: "#FFF",
                       fontSize: 11, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                     }}>{noteLetter || (myNum !== null ? myNum : "–")}</span>
                     <span style={{ fontSize: 11.5, fontWeight: 700, color: "#5A7682", flex: 1 }}>
@@ -1698,16 +1761,6 @@ function App() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#F2F7F9", fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif", color: "#1B3A47" }}>
-      {/* app-kop */}
-            <header style={{ background: "#0F4C5C", padding: "12px 0" }}>
-        <div style={{ maxWidth: "100%", padding: "0 20px", display: "flex", alignItems: "center", gap: 16 }}>
-          <StridLogo height={54} />
-          <div>
-            <div style={{ color: "#FFF", fontWeight: 800, fontSize: 17, letterSpacing: 0.3 }}>Strid's Focus</div>
-            <div style={{ color: "#BFD9E0", fontSize: 11.5 }}>Sequence Diagram Studio · UML-procesflows voor de zorg · afdelingen, rollen, locaties &amp; systemen</div>
-          </div>
-        </div>
-      </header>
 
       <main style={{ padding: "20px 20px 60px 20px" }}>
         {view === "dashboard" && (

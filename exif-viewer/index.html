@@ -8,9 +8,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
 
 :root {
-  --purple:#b732ac; --blue:#67bde5; --orange:#d37337;
+  --purple:#b732ac; --cat:#4895ef; --blue:#67bde5; --orange:#d37337;
   --lime:#9fbb3d; --green:#459a4f; --gray:#817870;
-  --bg:#fdf6f0; --surface:#ffffff; --text:#1f1a17;
+  --bg:#fdf6f0; --surface:#ffffff; --text:#404040;
   --muted:#7a6f6a; --border:#ecddd5; --radius:16px;
   --vf-bg:#15120f; --vf-panel:#221d18; --vf-green:#b6d957;
 }
@@ -82,7 +82,7 @@ header{
 /* details grid */
 .details{margin-top:24px;display:grid;gap:16px}
 .dgroup{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
-.dgroup h3{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:12px;color:var(--purple)}
+.dgroup h3{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:12px;color:var(--cat)}
 .drow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:.88rem}
 .drow:last-child{border-bottom:none}
 .drow .dl{color:var(--muted)}
@@ -100,7 +100,7 @@ header{
   padding:10px 22px;font-size:.88rem;font-weight:600;cursor:pointer;
   color:var(--text);transition:all .15s;
 }
-.btn:hover{background:var(--purple);color:#fff;border-color:var(--purple)}
+.btn:hover{background:var(--cat);color:#fff;border-color:var(--cat)}
 
 @media(max-width:560px){
   .ro-item{font-size:.9rem}
@@ -413,7 +413,7 @@ function render(exif, file){
       const link = `https://www.google.com/maps?q=${lat.toFixed(6)},${lon.toFixed(6)}`;
       groups.push(['Locatie', [
         ['Coördinaten', `${lat.toFixed(5)}, ${lon.toFixed(5)}`],
-        ['Bekijk op kaart', `<a href="${link}" target="_blank" style="color:var(--purple);text-decoration:none">Open in Maps →</a>`]
+        ['Bekijk op kaart', `<a href="${link}" target="_blank" style="color:var(--cat);text-decoration:none">Open in Maps →</a>`]
       ]]);
     }
   }
