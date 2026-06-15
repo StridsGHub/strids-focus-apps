@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volvo EX30 - Samenvatting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #003366;
+            --accent: #3ea6ff;
+            --dark: #0a0e27;
+            --light: #f5f7fa;
+            --gold: #d4af37;
+            --success: #2ecc71;
+            --warning: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, #1a1f3a 100%);
+            color: #fff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            padding: 40px 20px;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .logo {
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--accent);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: 3.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .model-info {
+            font-size: 1.1em;
+            color: #aaa;
+            margin-top: 10px;
+        }
+
+        .model-badge {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--dark);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(62, 166, 255, 0.2);
+        }
+
+        .card h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2::before {
+            content: '●';
+            font-size: 0.8em;
+            color: var(--gold);
+        }
+
+        .spec-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .spec-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .spec-label {
+            font-size: 0.9em;
+            color: var(--accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .spec-value {
+            font-size: 1.2em;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        /* Performance Section */
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .perf-box {
+            background: rgba(62, 166, 255, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .perf-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .perf-label {
+            font-size: 0.85em;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Cockpit/Screen Section */
+        .cockpit-section {
+            background: rgba(62, 166, 255, 0.08);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .cockpit-section h2 {
+            color: var(--accent);
+            margin-bottom: 25px;
+            font-size: 2em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .screen-visual {
+            background: linear-gradient(135deg, #1a1f3a, #0a0e27);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 2px solid var(--accent);
+            text-align: center;
+        }
+
+        .screen-display {
+            font-size: 3em;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+
+        .screen-info {
+            font-size: 0.95em;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        .screen-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #aaa;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .feature-item strong {
+            color: var(--accent);
+        }
+
+        /* Pros & Cons */
+        .section-title {
+            font-size: 2em;
+            margin: 40px 0 25px 0;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 15px;
+        }
+
+        .pros-cons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .pros, .cons {
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid;
+        }
+
+        .pros {
+            border-color: var(--success);
+            background: rgba(46, 204, 113, 0.08);
+        }
+
+        .cons {
+            border-color: var(--warning);
+            background: rgba(231, 76, 60, 0.08);
+        }
+
+        .pros h3 {
+            color: var(--success);
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .cons h3 {
+            color: var(--warning);
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .list-item {
+            margin-bottom: 12px;
+            padding-left: 25px;
+            position: relative;
+            font-size: 0.95em;
+        }
+
+        .pros .list-item::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .cons .list-item::before {
+            content: '⚠';
+            position: absolute;
+            left: 0;
+            color: var(--warning);
+        }
+
+        /* Design Section */
+        .design-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .design-section h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .design-section p {
+            margin-bottom: 10px;
+            color: #ddd;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 50px;
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5em;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pros-cons-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .performance-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .screen-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animation */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: slideInUp 0.6s ease-out forwards;
+        }
+
+        .card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .card:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+    </style>
+</head>
+<body>
+<a href="../" style="position:fixed;top:16px;left:16px;z-index:9999;background:#b732ac;color:#fff;padding:8px 14px;border-radius:99px;font-family:sans-serif;font-size:13px;text-decoration:none;backdrop-filter:blur(4px);display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.2)">← apps.strids-focus.nl</a>
+    <div class="container">
+        <header>
+            <div class="logo">⚡ Electric Vehicle</div>
+            <h1>VOLVO EX30</h1>
+            <div class="model-info">200 kW Single Motor • Extended Range • Plus • Black Edition</div>
+            <div class="model-badge">European Specification</div>
+        </header>
+
+        <!-- Technische Specificaties -->
+        <div class="grid">
+            <div class="card">
+                <h2>Motor & Prestatie</h2>
+                <div class="performance-grid">
+                    <div class="perf-box">
+                        <div class="perf-number">200<span style="font-size: 0.5em;">kW</span></div>
+                        <div class="perf-label">Vermogen</div>
+                    </div>
+                    <div class="perf-box">
+                        <div class="perf-number">268<span style="font-size: 0.5em;">pk</span></div>
+                        <div class="perf-label">Paardenkrachten</div>
+                    </div>
+                    <div class="perf-box">
+                        <div class="perf-number">253<span style="font-size: 0.5em;">Nm</span></div>
+                        <div class="perf-label">Koppel</div>
+                    </div>
+                    <div class="perf-box">
+                        <div class="perf-number">5.1<span style="font-size: 0.5em;">sec</span></div>
+                        <div class="perf-label">0-100 km/h</div>
+                    </div>
+                </div>
+                <div class="spec-item" style="border-bottom: none; margin-top: 20px;">
+                    <div class="spec-label">Aandrijving</div>
+                    <div class="spec-value">Achterwiel (RWD)</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Batterij & Actieradius</h2>
+                <div class="spec-item">
+                    <div class="spec-label">Batterijcapaciteit</div>
+                    <div class="spec-value">64 kWh</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Actieradius (WLTP)</div>
+                    <div class="spec-value">±275 km</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">DC Fast Charging (10-80%)</div>
+                    <div class="spec-value">±27 minuten</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Laadsnelheid</div>
+                    <div class="spec-value">153 kW (max)</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">AC Laden (7kW)</div>
+                    <div class="spec-value">~8 uur tot 100%</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Afmetingen & Gewicht</h2>
+                <div class="spec-item">
+                    <div class="spec-label">Lengte</div>
+                    <div class="spec-value">4.235 m</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Breedte</div>
+                    <div class="spec-value">1.830 m</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Hoogte</div>
+                    <div class="spec-value">1.575 m</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Kofferbakvolume</div>
+                    <div class="spec-value">300+ liter</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Zitplaatsen</div>
+                    <div class="spec-value">5 personen</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Design & Uitstraling</h2>
+                <div class="spec-item">
+                    <div class="spec-label">Exterieurkleur</div>
+                    <div class="spec-value">Black Edition</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Koplampen</div>
+                    <div class="spec-value">Thor's Hammer LED</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Achterlichten</div>
+                    <div class="spec-value">Viking Axe LED</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Interieurafwerking</div>
+                    <div class="spec-value">Duurzame materialen</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Grille</div>
+                    <div class="spec-value">Volledig gesloten</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cockpit & Infotainment Section -->
+        <section class="cockpit-section">
+            <h2>🎮 Cockpit & Infotainment Systeem</h2>
+            
+            <div class="screen-visual">
+                <div class="screen-display">12.3"</div>
+                <div class="screen-info">Verticaal touchscreen • Snapdragon 8155</div>
+                <p style="color: #888; margin-top: 10px; font-size: 0.9em;">Google Integrated Services • Wireless Android Auto & Apple CarPlay</p>
+            </div>
+
+            <div class="screen-stats">
+                <div class="stat">
+                    <div class="stat-value">Google Maps</div>
+                    <div class="stat-label">Navigatie</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">Google Assistant</div>
+                    <div class="stat-label">Spraakbesturing</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">OTA Updates</div>
+                    <div class="stat-label">Wireless</div>
+                </div>
+            </div>
+
+            <h3 style="color: var(--accent); margin-top: 30px; margin-bottom: 15px; font-size: 1.2em; text-transform: uppercase; letter-spacing: 1px;">Wat je op het scherm kunt zien en instellen:</h3>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <strong>🗺️ Navigatie & Routering</strong><br>
+                    Realtime Google Maps integratie, verkeersinfo, oplaadpalen-routing met laadstop-optimalisatie
+                </div>
+                <div class="feature-item">
+                    <strong>🔋 Batterij Management</strong><br>
+                    Batterijtoestand, geschatte actieradius, laadstatus, laadhistorie, energieverbruik
+                </div>
+                <div class="feature-item">
+                    <strong>⚡ Laad Instellingen</strong><br>
+                    Laaddoel instellen, laadschema programmeren, AC/DC laadvoorkeur, laadsnelheid aanpassen
+                </div>
+                <div class="feature-item">
+                    <strong>🌡️ Klimaatregeling</strong><br>
+                    Temperatuur, verwarmings-/koelingsvoorkeur, stoelverwarming/ventilatie bedienen
+                </div>
+                <div class="feature-item">
+                    <strong>🎛️ Rijd-Modi</strong><br>
+                    Eco, Normal en Performance mode selecteren, regeneratief remmen aanpassen, één-pedaal rijden
+                </div>
+                <div class="feature-item">
+                    <strong>📱 Mediabestuur</strong><br>
+                    Spotify, YouTube Music, podcasts, handsfree bellen, berichtjes, contactgegevens
+                </div>
+                <div class="feature-item">
+                    <strong>🔐 Voertuig Status</strong><br>
+                    Deuren/ramen status, slot status, parkeerlocatie, rijafstand, serviceherinnering
+                </div>
+                <div class="feature-item">
+                    <strong>⚙️ Voertuiginstellingen</strong><br>
+                    Lichtsensor, wisserkrachten, geluidsvolume, displays- en betoverstelling, taal/regio
+                </div>
+                <div class="feature-item">
+                    <strong>🔔 Waarschuwingen & Meldingen</strong><br>
+                    Bandenspanning, onderhouds-alerts, veiligheid-berichten, laadstatus-notificaties
+                </div>
+                <div class="feature-item">
+                    <strong>🛡️ Veiligheid & Assistentie</strong><br>
+                    Automatische noodremming (AEB), blind spot monitoring, achteruitrijcamera, parkeerassistent weergave
+                </div>
+            </div>
+        </section>
+
+        <!-- Pros & Cons -->
+        <h2 class="section-title">✓ Sterke Punten & ⚠ Tegenvallers</h2>
+
+        <div class="pros-cons-grid">
+            <div class="pros">
+                <h3>✓ Wat Maakt de EX30 Geweldig</h3>
+                <div class="list-item">Geweldige prijs-kwaliteitverhouding voor zijn segment</div>
+                <div class="list-item">Opvallend Scandinavisch design met karaktervolle styling</div>
+                <div class="list-item">Uitstekende acceleratie (5.1 sec naar 100 km/h)</div>
+                <div class="list-item">Duurzame materialencombinatie met gerecyclede stoffen</div>
+                <div class="list-item">Indrukwekkende 5-sterrenbeoordeling Euro NCAP</div>
+                <div class="list-item">Goed weggedrag en balans tussen comfort en handling</div>
+                <div class="list-item">Standaard uitgebreide veiligheidsfuncties (AEB, blind spot)</div>
+                <div class="list-item">Google-integratie voor intuïtieve bediening</div>
+                <div class="list-item">Slimme opbergoplossingen in compact ontwerp</div>
+                <div class="list-item">Sinds 2025 ook in Europa (Gent) geproduceerd</div>
+            </div>
+
+            <div class="cons">
+                <h3>⚠ Waar Te Voorzichtig Mee Zijn</h3>
+                <div class="list-item">Beperkte ruimte achterin (smalle beenruimte)</div>
+                <div class="list-item">Relatief kleine bagageruimte (300+ liter)</div>
+                <div class="list-item">Gemiddelde laadsnelheid vergeleken met concurrenten</div>
+                <div class="list-item">Bereik van ~275 km is beperkt voor lange ritten</div>
+                <div class="list-item">Stijve vering kan oncomfortabel zijn op slecht wegdek</div>
+                <div class="list-item">Meldingen van ongelijkmatige bandenslijtage</div>
+                <div class="list-item">Occasionele laadproblemen of onherkenning laadpalen</div>
+                <div class="list-item">Stoelcomfort kan tegen teleurstelling vallen</div>
+                <div class="list-item">Hogere prijs dan bij markintroductie (2024)</div>
+                <div class="list-item">Niet ideaal voor gezinnen met veel spullen</div>
+            </div>
+        </div>
+
+        <!-- Design Details -->
+        <h2 class="section-title">🎨 Design & Interieur</h2>
+
+        <div class="design-section">
+            <h3>Exterieur Design</h3>
+            <p><strong>Thor's Hammer LED-koplampen:</strong> Volvo's iconische handtekening LED-design creëert een moderne, herkenbare voorkant</p>
+            <p><strong>Viking Axe achterlichten:</strong> Karaktervolle LED-signature aan de achterkant die het Scandinavische DNA benadrukt</p>
+            <p><strong>Gesloten grille:</strong> Volledig gesloten voorkant onderscheidt de EX30 als pure elektrisch voertuig</p>
+            <p><strong>Black Edition uitvoering:</strong> Donkere laksering met accent-details voor agressieve, moderne uitstraling</p>
+        </div>
+
+        <div class="design-section">
+            <h3>Interieur Materialen & Duurzaamheid</h3>
+            <p><strong>Gerecyclede PVC:</strong> Gebruikmaken van hergebruikt plastic voor dashboardinzetten en afwerkingen</p>
+            <p><strong>Natuurlijke wol:</strong> Stoelvoeringen en bedekking van duurzame wollen textielen</p>
+            <p><strong>Denim-inspiratie:</strong> Duurzame stoffen met karakteristieke weeftextuur</p>
+            <p><strong>AmpliTex vlasvezel:</strong> Wereldprimeur: eerste productieauto met volledig plant-based composieten</p>
+            <p><strong>Minimalistisch design:</strong> Schone lijnen, ongecompliceerde oppervlakken volgens Scandinavische designfilosofie</p>
+        </div>
+
+        <!-- Summary -->
+        <section style="background: rgba(62, 166, 255, 0.08); padding: 30px; border-radius: 12px; border-left: 4px solid var(--accent); margin-bottom: 50px;">
+            <h2 style="color: var(--accent); margin-bottom: 15px;">Samenvatting</h2>
+            <p style="font-size: 1.05em; line-height: 1.8;">
+                De <strong>Volvo EX30 200kW Single Motor Extended Range Plus Black Edition</strong> is een stijlvol, duurzaam en modern elektrisch voertuig dat perfect past in de huishoudens van stadsrijders, pendelaars en jonge professionals. Met zijn 268 pk motor, luxe interieur en geavanceerde Google-geïntegreerde infotainment biedt het een naadloze combinatie van prestatie, technologie en duurzaamheid.
+            </p>
+            <p style="font-size: 1.05em; line-height: 1.8;">
+                Het 12.3-inch touchscreen-dashboard geeft complete controle over alles van navigatie tot laadplanning, terwijl de innovatieve duurzame materialen en iconische Scandinavische design-elementen deze auto onderscheiden van de massa. Perfect voor wie waarde hecht aan stijl, technologie en milieubewustzijn.
+            </p>
+        </section>
+
+        <footer>
+            <p>Volvo EX30 Samenvatting | Black Edition European Specification | 200 kW Single Motor Extended Range Plus</p>
+            <p style="margin-top: 10px; font-size: 0.85em;">Alle specificaties zijn gebaseerd op europese marktdata 2025-2026</p>
+        </footer>
+    </div>
+</body>
+</html>

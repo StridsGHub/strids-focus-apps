@@ -47,16 +47,20 @@ header{
   box-shadow:0 4px 16px rgba(0,0,0,.08);
 }
 .card:hover{transform:translateY(-4px);box-shadow:0 10px 32px rgba(0,0,0,.16)}
-.card-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:4.6rem;padding-bottom:36px}
+.card-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:4.6rem;line-height:1;padding-bottom:60px}
 .card-body{position:relative;z-index:2;padding:18px 20px;background:linear-gradient(to top,rgba(0,0,0,.5) 0%,transparent 100%)}
-.card-title{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;line-height:1.2}
-.card-desc{font-size:.82rem;color:rgba(255,255,255,.88);margin-top:5px;line-height:1.4}
+.card-title{font-family:'Inter',sans-serif;font-size:1.25rem;font-weight:700;line-height:1.2;letter-spacing:-.01em}
+.card-desc{font-size:.7rem;color:rgba(255,255,255,.88);margin-top:5px;line-height:1.4;min-height:2.8em}
 .card-arrow{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.22);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:99px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:1rem}
 
-.card-recepten{background:linear-gradient(135deg,#f4a261,#e76f51)}
-.card-exif{background:linear-gradient(135deg,#3a322b,#15120f)}
-.card-print{background:linear-gradient(135deg,#67bde5,#4895ef)}
-.card-lach{background:linear-gradient(135deg,#b732ac,#d37337)}
+.card-fotografie{background:linear-gradient(135deg,#67bde5,#4895ef)}
+.card-zorgtech{background:linear-gradient(135deg,#459a4f,#2e7d32)}
+.card-algemeen{background:linear-gradient(135deg,#9fbb3d,#d37337)}
+.card-speels{background:linear-gradient(135deg,#b732ac,#e63946)}
+
+.legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-start;margin-top:18px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);font-weight:600}
+.legend-dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex-shrink:0}
 
 /* ── SOON CARD ── */
 .card.soon{
@@ -137,10 +141,16 @@ header{
   <div class="hero">
     <h1>Mijn digitale gereedschapskist</h1>
     <p>Een verzameling kleine apps en tools — gemaakt voor mezelf, maar gedeeld voor wie er wat aan heeft. Klik op een tool om 'm te openen.</p>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:linear-gradient(135deg,#67bde5,#4895ef)"></span>Fotografie</span>
+      <span class="legend-item"><span class="legend-dot" style="background:linear-gradient(135deg,#459a4f,#2e7d32)"></span>Zorgtech/informatica</span>
+      <span class="legend-item"><span class="legend-dot" style="background:linear-gradient(135deg,#9fbb3d,#d37337)"></span>Algemeen/persoonlijk</span>
+      <span class="legend-item"><span class="legend-dot" style="background:linear-gradient(135deg,#b732ac,#e63946)"></span>Speels/deelbaar</span>
+    </div>
   </div>
 
   <div class="grid">
-    <a class="card card-recepten" href="./recepten/">
+    <a class="card card-algemeen" href="./recepten/">
       <div class="card-bg">🍳</div>
       <div class="card-arrow">→</div>
       <div class="card-body">
@@ -149,7 +159,7 @@ header{
       </div>
     </a>
 
-    <a class="card card-exif" href="./exif-viewer/">
+    <a class="card card-fotografie" href="./exif-viewer/">
       <div class="card-bg">📷</div>
       <div class="card-arrow">→</div>
       <div class="card-body">
@@ -158,7 +168,7 @@ header{
       </div>
     </a>
 
-    <a class="card card-print" href="./print-calculator/">
+    <a class="card card-fotografie" href="./print-calculator/">
       <div class="card-bg">🖼️</div>
       <div class="card-arrow">→</div>
       <div class="card-body">
@@ -167,7 +177,7 @@ header{
       </div>
     </a>
 
-    <a class="card card-lach" href="./dag-niet-gelachen/">
+    <a class="card card-speels" href="./dag-niet-gelachen/">
       <div class="card-bg">😄</div>
       <div class="card-arrow">→</div>
       <div class="card-body">
@@ -176,21 +186,50 @@ header{
       </div>
     </a>
 
-    <div class="card soon">
+    <a class="card card-fotografie" href="./kleurenpalet/">
       <div class="card-bg">🎨</div>
+      <div class="card-arrow">→</div>
       <div class="card-body">
         <div class="card-title">Kleurenpalet-extractor</div>
-        <div class="card-desc">Binnenkort: haal een kleurenpalet uit een foto.</div>
+        <div class="card-desc">Haal de dominante kleuren uit een foto.</div>
       </div>
-    </div>
+    </a>
 
-    <div class="card soon">
-      <div class="card-bg">🏥</div>
+    <a class="card card-zorgtech" href="./nictiz-lagenmodel/">
+      <div class="card-bg">🏛️</div>
+      <div class="card-arrow">→</div>
       <div class="card-body">
-        <div class="card-title">Nictiz 5-layer visualizer</div>
-        <div class="card-desc">Binnenkort: interactieve uitleg van het Nictiz-model.</div>
+        <div class="card-title">Nictiz 5-lagenmodel</div>
+        <div class="card-desc">Interactieve uitleg van het Nictiz-interoperabiliteitsmodel.</div>
       </div>
-    </div>
+    </a>
+
+    <a class="card card-zorgtech" href="./sequence-diagram/">
+      <div class="card-bg">🔀</div>
+      <div class="card-arrow">→</div>
+      <div class="card-body">
+        <div class="card-title">Sequence Diagram Studio</div>
+        <div class="card-desc">Teken sequence-diagrammen voor ziekenhuisprocessen (afdelingen, rollen, systemen).</div>
+      </div>
+    </a>
+
+    <a class="card card-zorgtech" href="./gdsn-guide/">
+      <div class="card-bg">📦</div>
+      <div class="card-arrow">→</div>
+      <div class="card-body">
+        <div class="card-title">GDSN in Ziekenhuizen</div>
+        <div class="card-desc">Uitleg GDSN-gegevensuitwisseling aan de hand van het Nictiz-lagenmodel.</div>
+      </div>
+    </a>
+
+    <a class="card card-algemeen" href="./volvo-ex30/">
+      <div class="card-bg">🚗</div>
+      <div class="card-arrow">→</div>
+      <div class="card-body">
+        <div class="card-title">Volvo EX30 — Samenvatting</div>
+        <div class="card-desc">Persoonlijke samenvatting van de Volvo EX30.</div>
+      </div>
+    </a>
   </div>
 </div>
 

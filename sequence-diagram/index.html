@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strid's Focus — Sequence Diagram Studio</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<a href="../" style="position:fixed;top:16px;left:16px;z-index:9999;background:#b732ac;color:#fff;padding:8px 14px;border-radius:99px;font-family:sans-serif;font-size:13px;text-decoration:none;backdrop-filter:blur(4px);display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.2)">← apps.strids-focus.nl</a>
+<div id="root"></div>
+<script>
+
+// ---- Opslag-shim: buiten Claude gebruiken we localStorage ----
+if (!window.storage) {
+  window.storage = {
+    async get(key) {
+      const v = localStorage.getItem("sds:" + key);
+      if (v === null) throw new Error("key not found");
+      return { key, value: v, shared: false };
+    },
+    async set(key, value) {
+      localStorage.setItem("sds:" + key, value);
+      return { key, value, shared: false };
+    },
+    async delete(key) {
+      localStorage.removeItem("sds:" + key);
+      return { key, deleted: true, shared: false };
+    },
+    async list(prefix = "") {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k.startsWith("sds:" + prefix)) keys.push(k.slice(4));
+      }
+      return { keys, prefix, shared: false };
+    },
+  };
+}
+
+</script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useMemo } = React;
+
+
+/* ============================================================
+   Sequence Diagram Studio — ziekenhuiscontext
+   Actortypes: afdeling | rol (functie) | systeem (applicatie)
+   Berichttypen: sync | async | return | self  + notities
+   ============================================================ */
+
+const STORAGE_KEY = "seqdiagram-studio-v1";
+
+const TYPE_META = {
+  afdeling: { label: "Afdeling", color: "#1D5FBF", soft: "#E3EDFB", icon: "▦" },
+  rol: { label: "Functie / Rol", color: "#0E8A6E", soft: "#DDF3EC", icon: "👤" },
+  systeem: { label: "Systeem", color: "#7A4DC9", soft: "#EEE6FA", icon: "⚙" },
+  locatie: { label: "Locatie", color: "#C2641F", soft: "#FBEBDC", icon: "📍" },
+  service: { label: "Service", color: "#0F8B8D", soft: "#DCF1F1", icon: "🛠" },
+  actor: { label: "Actor", color: "#546A7B", soft: "#E6ECF0", icon: "🎭" },
+};
+
+/* standaard-pictogram per actortype */
+const DEFAULT_GLYPH = { afdeling: "gebouw", rol: "persoon", systeem: "monitor", locatie: "pin", service: "tandwiel", actor: "persoon" };
+
+/* beschikbare pictogrammen, per categorie */
+const GLYPH_GROUPS = [
+  {
+    label: "Organisatie & algemeen",
+    items: [
+      { key: "persoon", label: "Persoon" },
+      { key: "gebouw", label: "Gebouw" },
+      { key: "pin", label: "Locatie" },
+      { key: "deur", label: "Sluis / deur" },
+      { key: "document", label: "Document" },
+      { key: "kalender", label: "Agenda / planning" },
+      { key: "klok", label: "Tijd" },
+      { key: "euro", label: "Financiën" },
+      { key: "grafiek", label: "Rapportage" },
+      { key: "schild", label: "Beveiliging" },
+      { key: "tandwiel", label: "Service / proces" },
+    ],
+  },
+  {
+    label: "Zorg & afdelingen",
+    items: [
+      { key: "kruis", label: "Zorgkruis" },
+      { key: "bed", label: "Bed / verpleging" },
+      { key: "hart", label: "Cardiologie / monitoring" },
+      { key: "pil", label: "Apotheek / medicatie" },
+      { key: "injectie", label: "Injectie / prikpost" },
+      { key: "lab", label: "Laboratorium" },
+      { key: "microscoop", label: "Pathologie / onderzoek" },
+      { key: "ambulance", label: "Ambulance / SEH" },
+      { key: "rolstoel", label: "Patiëntvervoer" },
+    ],
+  },
+  {
+    label: "Logistiek",
+    items: [
+      { key: "doos", label: "Set / doos" },
+      { key: "magazijn", label: "Magazijn" },
+      { key: "kar", label: "Transportkar" },
+    ],
+  },
+  {
+    label: "Hardware & IT",
+    items: [
+      { key: "monitor", label: "Systeem / applicatie" },
+      { key: "server", label: "Server" },
+      { key: "database", label: "Database" },
+      { key: "netwerk", label: "Netwerk / koppeling" },
+      { key: "cloud", label: "Cloud" },
+      { key: "laptop", label: "Laptop / werkplek" },
+      { key: "printer", label: "Printer / etiket" },
+      { key: "telefoon", label: "Telefoon / mobiel" },
+    ],
+  },
+];
+const GLYPH_LIST = GLYPH_GROUPS.flatMap((g) => g.items);
+
+/* kleur-codering: vaste, benoemde kleuren */
+const PALETTE_STD = [
+  { hex: "#1D5FBF", label: "Blauw" },
+  { hex: "#0E8A6E", label: "Groen" },
+  { hex: "#7A4DC9", label: "Paars" },
+  { hex: "#C2641F", label: "Oranje" },
+  { hex: "#C03A3A", label: "Rood" },
+  { hex: "#0E7490", label: "Petrol" },
+  { hex: "#C04277", label: "Roze" },
+  { hex: "#4A6275", label: "Grijsblauw" },
+  { hex: "#8A6A3B", label: "Bruin" },
+  { hex: "#A48A00", label: "Oker" },
+];
+const PALETTE_NICTIZ = [
+  { hex: "#B732AC", label: "Nictiz — Organisatiebeleid" },
+  { hex: "#67BDE5", label: "Nictiz — Zorgproces" },
+  { hex: "#D37337", label: "Nictiz — Informatie" },
+  { hex: "#9FBB3D", label: "Nictiz — Applicatie" },
+  { hex: "#459A4F", label: "Nictiz — IT-infrastructuur" },
+  { hex: "#817870", label: "Nictiz — Wet- en regelgeving" },
+  { hex: "#B4AEA9", label: "Nictiz — Beveiliging" },
+];
+const PALETTE = [...PALETTE_STD, ...PALETTE_NICTIZ];
+
+/* lichte kleuren voor notities */
+const NOTE_COLORS = [
+  { bg: "#FEFDFB", text: "#4A3F28", label: "Crème", border: "#E8DCC8" },
+  { bg: "#EBF5FB", text: "#1A3A47", label: "Licht blauw", border: "#B3D9EB" },
+  { bg: "#EBF8F0", text: "#1B4D3E", label: "Licht groen", border: "#B3E5D4" },
+  { bg: "#FFFBEB", text: "#7A6A1F", label: "Licht geel", border: "#F3E5A1" },
+  { bg: "#FDF0F5", text: "#5A2D3E", label: "Licht roze", border: "#F3D1E5" },
+  { bg: "#FEF3EB", text: "#7A4A1F", label: "Licht oranje", border: "#F3D1B3" },
+  { bg: "#F5F5F5", text: "#3A3A3A", label: "Licht grijs", border: "#D1D1D1" },
+  { bg: "#F5F0FB", text: "#4A2F5A", label: "Licht lavendel", border: "#DCC8E8" },
+];
+
+const actorColor = (a) => a.color || (TYPE_META[a.type] || TYPE_META.systeem).color;
+const actorGlyph = (a) => a.icon || DEFAULT_GLYPH[a.type] || "monitor";
+
+/* ---------- Strid's Focus bedrijfslogo (transparant) ---------- */
+const STRID_SEGS = [
+  { c: "#b732ac", g: null, t: "translate(9.35432,-124.256)", cut: "M0 595.28 L128.1 467.18 L107.16 467.18 L0 574.33 L0 595.28 Z" },
+  { c: "#67bde5", g: "translate(449.652,49.897) rotate(60.1)", t: "translate(9.21649,-124.257)", cut: "M0 595.28 L128.28 466.99 L107.31 466.99 L0 574.3 L0 595.28 Z" },
+  { c: "#d37337", g: "translate(630.717,463.005) rotate(120)", t: "translate(9.39314,-124.115)", cut: "M0 595.28 L127.64 467.63 L106.77 467.63 L0 574.41 L0 595.28 Z" },
+  { c: "#9fbb3d", g: "translate(365.565,826.193) rotate(179.7)", t: "translate(9.34106,-124.265)", cut: "M0 595.28 L126.6 468.68 L105.9 468.68 L0 574.58 L0 595.28 Z" },
+  { c: "#459a4f", g: "translate(-84.9791,778.186) rotate(-120.1)", t: "translate(9.35409,-124.421)", cut: "M0 595.28 L128.08 467.2 L107.14 467.2 L0 574.34 L0 595.28 Z" },
+  { c: "#817870", g: "translate(-267.486,365.713) rotate(-60.2)", t: "translate(9.27977,-124.051)", cut: "M0 595.28 L129.27 466 L108.14 466 L0 574.14 L0 595.28 Z" },
+];
+const STRID_TRI = "M0 595.28 L108.85 595.28 L20.63 437.99 Z";
+const STRID_ARC = "M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z";
+const STRID_ARC_TF = "translate(363.402,827.15) rotate(180)";
+const STRID_CUT_TF = "translate(603.44,473.898) rotate(105.609)";
+
+function StridLogo({ height = 44 }) {
+  return (
+    <svg viewBox="222 66 384 434" height={height} width={(height * 384) / 434} aria-label="Strid's Focus logo" style={{ display: "block" }}>
+      <defs>
+        <mask id="strid-cut" maskUnits="userSpaceOnUse" x="222" y="66" width="384" height="434">
+          <rect x="222" y="66" width="384" height="434" fill="#fff" />
+          <g transform="translate(231.874,-130.394)" fill="#000" stroke="#000" strokeWidth="2">
+            {STRID_SEGS.map((s, i) => (
+              <g key={i} transform={s.g || undefined}>
+                <path transform={STRID_CUT_TF} d={s.cut} />
+              </g>
+            ))}
+          </g>
+        </mask>
+      </defs>
+      <g mask="url(#strid-cut)">
+        <g transform="translate(231.874,-130.394)">
+          {STRID_SEGS.map((s, i) => (
+            <g key={i} fill={s.c} stroke={s.c} strokeWidth="0.25" transform={s.g || undefined}>
+              <path transform={s.t} d={STRID_TRI} />
+              <path transform={STRID_ARC_TF} d={STRID_ARC} />
+            </g>
+          ))}
+        </g>
+      </g>
+    </svg>
+  );
+}
+
+const MSG_META = {  sync: { label: "Synchroon", hint: "dichte pijl — wacht op antwoord" },
+  async: { label: "Asynchroon", hint: "open pijl — wacht niet" },
+  return: { label: "Retour", hint: "gestippeld — antwoord terug" },
+  self: { label: "Zelf-bericht", hint: "actor naar zichzelf" },
+};
+
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+
+const emptyDiagram = () => ({
+  id: uid(),
+  title: "Nieuw diagram",
+  description: "",
+  actors: [],
+  steps: [],
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+});
+
+/* ---------- opslag ---------- */
+async function loadAll() {
+  try {
+    const res = await window.storage.get(STORAGE_KEY);
+    if (res && res.value) return JSON.parse(res.value);
+  } catch (e) {
+    /* sleutel bestaat nog niet */
+  }
+  return { diagrams: [] };
+}
+async function saveAll(data) {
+  try {
+    await window.storage.set(STORAGE_KEY, JSON.stringify(data));
+    return true;
+  } catch (e) {
+    console.error("Opslaan mislukt", e);
+    return false;
+  }
+}
+
+/* ---------- tekst-breedte schatting ---------- */
+const textW = (s, size = 12) => (s ? s.length * size * 0.6 : 0);
+
+/* tekst over maximaal N regels verdelen (greedy op woorden) */
+function wrapText(s, maxWidth, size = 12.5, maxLines = 3) {
+  const words = String(s || "").split(/\s+/).filter(Boolean);
+  if (!words.length) return [""];
+  const lines = [];
+  let cur = "";
+  for (const w of words) {
+    const probe = cur ? cur + " " + w : w;
+    if (!cur || textW(probe, size) <= maxWidth) cur = probe;
+    else { lines.push(cur); cur = w; }
+  }
+  if (cur) lines.push(cur);
+  // meer regels dan toegestaan: rest samenvoegen en laatste regel inkorten
+  if (lines.length > maxLines) {
+    const rest = lines.slice(maxLines - 1).join(" ");
+    lines.length = maxLines - 1;
+    let last = rest;
+    while (last.length > 1 && textW(last + "…", size) > maxWidth) {
+      last = last.slice(0, -1).trimEnd();
+    }
+    lines.push(last + "…");
+  }
+  return lines;
+}
+
+const longestWordW = (s, size) => {
+  const ws = String(s || "").split(/\s+/).filter(Boolean);
+  return ws.length ? Math.max(...ws.map((w) => textW(w, size))) : 0;
+};
+
+/* ============================================================
+   SVG-renderer: alle actoren op gelijke onderlinge afstand;
+   actielabels lopen automatisch om over max. 3 regels en elke
+   actie blijft strikt op een eigen horizontale lijn uitgelijnd.
+   ============================================================ */
+function computeLayout(diagram) {
+  const actors = diagram.actors;
+  const steps = diagram.steps;
+  const n = actors.length;
+
+  const HEAD_W = 158;
+  const HEAD_H = 90;
+  const TOP = 28;
+  const BOTTOM = 40;
+  const SIDE = 60;
+  const LINE_H = 16;
+  const BASE_ROW = 64;
+  const MIN_GAP = 190;
+
+  const idx = {};
+  actors.forEach((a, i) => (idx[a.id] = i));
+
+  // ---- één uniforme kolomafstand voor alle actorparen ----
+  let gap = MIN_GAP;
+  steps.forEach((s) => {
+    if (s.kind === "message") {
+      const i1 = idx[s.from], i2 = idx[s.to];
+      if (i1 === undefined || i2 === undefined) return;
+      const isSelf = s.type === "self" || i1 === i2;
+      const lineW = Math.max(textW(s.label, 12.5) / 3, longestWordW(s.label, 12.5));
+      if (isSelf) gap = Math.max(gap, lineW + 92);
+      else gap = Math.max(gap, (lineW + 56) / Math.abs(i2 - i1));
+    } else if (s.kind === "note") {
+      const lineW = Math.min(Math.max(textW(s.label, 12) / 3, longestWordW(s.label, 12)), 210);
+      gap = Math.max(gap, lineW + 80);
+    }
+  });
+  gap = Math.ceil(gap);
+
+  const xs = [];
+  for (let i = 0; i < n; i++) xs.push(SIDE + HEAD_W / 2 + i * gap);
+  let width = (n ? xs[n - 1] : SIDE) + HEAD_W / 2 + SIDE + 20;
+  
+  // ---- extra breedte voor notities die naar rechts uitsteken ----
+  steps.forEach((s) => {
+    if (s.kind === "note") {
+      const notePosX = xs[idx[s.actor]] || 0;
+      const noteW = s.width || 280;
+      const noteOx = s.offsetX || 0;
+      const rightEdge = notePosX + 12 + noteW + noteOx + 40; // +40 voor marge
+      width = Math.max(width, rightEdge);
+    }
+  });
+
+  // ---- rijen: hoogte groeit mee met het aantal tekstregels ----
+  const rows = [];
+  let yCur = TOP + HEAD_H + 44;
+  steps.forEach((s) => {
+    let lines;
+    if (s.kind === "note") {
+      lines = wrapText(s.label, Math.min(gap - 70, 230), 12, 3);
+    } else {
+      const i1 = idx[s.from], i2 = idx[s.to];
+      const isSelf = s.type === "self" || s.from === s.to;
+      if (isSelf || i1 === undefined || i2 === undefined) {
+        lines = wrapText(s.label, Math.max(gap - 92, 90), 12.5, 3);
+      } else {
+        lines = wrapText(s.label, Math.abs(i2 - i1) * gap - 56, 12.5, 3);
+      }
+    }
+    const extra = (lines.length - 1) * LINE_H;
+    rows.push({ y: yCur + extra + 0, lines });
+    yCur += BASE_ROW + extra;
+  });
+  const rowY = (i) => (rows[i] ? rows[i].y : yCur);
+  const height = yCur + BOTTOM;
+
+  // activatiebalken: aaneengesloten betrokkenheid per actor
+  const involvement = actors.map(() => []);
+  steps.forEach((s, si) => {
+    if (s.kind === "message") {
+      if (idx[s.from] !== undefined) involvement[idx[s.from]].push(si);
+      if (idx[s.to] !== undefined) involvement[idx[s.to]].push(si);
+    } else if (s.kind === "note" && idx[s.actor] !== undefined) {
+      involvement[idx[s.actor]].push(si);
+    }
+  });
+  const bars = [];
+  involvement.forEach((rows2, ai) => {
+    if (!rows2.length) return;
+    let start = rows2[0], prev = rows2[0];
+    for (let k = 1; k <= rows2.length; k++) {
+      if (k === rows2.length || rows2[k] !== prev + 1) {
+        bars.push({ actor: ai, from: start, to: prev });
+        if (k < rows2.length) { start = rows2[k]; prev = rows2[k]; }
+      } else prev = rows2[k];
+    }
+  });
+
+  return { xs, idx, width, height, rowY, rows, HEAD_W, HEAD_H, TOP, LINE_H, bars, gap };
+}
+
+/* ---------- pictogrammenbibliotheek ---------- */
+function ActorGlyph({ glyph, color, x = 0, y = 0 }) {
+  const c = color || "#4A6275";
+  const st = { stroke: c, strokeWidth: 1.9, strokeLinecap: "round", strokeLinejoin: "round", fill: "none" };
+  let body = null;
+
+  switch (glyph) {
+    case "persoon":
+      body = (<>
+        <circle cx="0" cy="-7.5" r="3.6" {...st} />
+        <line x1="0" y1="-3.6" x2="0" y2="3.5" {...st} />
+        <line x1="-5.5" y1="-0.5" x2="5.5" y2="-0.5" {...st} />
+        <line x1="0" y1="3.5" x2="-4.5" y2="10" {...st} />
+        <line x1="0" y1="3.5" x2="4.5" y2="10" {...st} />
+      </>);
+      break;
+    case "gebouw":
+      body = (<>
+        <rect x="-8.5" y="-9" width="17" height="19" rx="1.5" {...st} />
+        <line x1="0" y1="-5.5" x2="0" y2="0.5" {...st} strokeWidth="2.4" />
+        <line x1="-3" y1="-2.5" x2="3" y2="-2.5" {...st} strokeWidth="2.4" />
+        <rect x="-2.6" y="5" width="5.2" height="5" fill={c} stroke="none" />
+      </>);
+      break;
+    case "pin":
+      body = (<>
+        <path d="M0,8 C0,8 -7.5,0.5 -7.5,-4.5 A7.5,7.5 0 1 1 7.5,-4.5 C7.5,0.5 0,8 0,8 Z" {...st} />
+        <circle cx="0" cy="-4.5" r="2.6" fill={c} stroke="none" />
+        <line x1="-9" y1="10.5" x2="9" y2="10.5" {...st} strokeDasharray="2.5 2.5" />
+      </>);
+      break;
+    case "bed":
+      body = (<>
+        <line x1="-10" y1="-7" x2="-10" y2="8" {...st} />
+        <line x1="10" y1="0" x2="10" y2="8" {...st} />
+        <line x1="-10" y1="4" x2="10" y2="4" {...st} />
+        <rect x="-8.5" y="-1" width="6" height="4" rx="1.5" fill={c} stroke="none" />
+        <path d="M-1,1 H10 V4" {...st} />
+      </>);
+      break;
+    case "kruis":
+      body = (<>
+        <circle cx="0" cy="0" r="9.5" {...st} />
+        <line x1="0" y1="-4.5" x2="0" y2="4.5" {...st} strokeWidth="3" />
+        <line x1="-4.5" y1="0" x2="4.5" y2="0" {...st} strokeWidth="3" />
+      </>);
+      break;
+    case "doos":
+      body = (<>
+        <rect x="-8" y="-4" width="16" height="12" rx="1" {...st} />
+        <path d="M-8,-4 L0,-9 L8,-4" {...st} />
+        <line x1="0" y1="-4" x2="0" y2="8" {...st} strokeWidth="1.4" />
+      </>);
+      break;
+    case "magazijn":
+      body = (<>
+        <rect x="-9" y="-9" width="18" height="18" rx="1" {...st} />
+        <line x1="-9" y1="-3" x2="9" y2="-3" {...st} />
+        <line x1="-9" y1="3" x2="9" y2="3" {...st} />
+        <rect x="-7" y="-7.5" width="4" height="3.4" fill={c} stroke="none" />
+        <rect x="-1" y="-1.6" width="4" height="3.4" fill={c} stroke="none" />
+        <rect x="3" y="4.4" width="4" height="3.4" fill={c} stroke="none" />
+      </>);
+      break;
+    case "deur":
+      body = (<>
+        <rect x="-7" y="-9.5" width="14" height="19" rx="1" {...st} />
+        <path d="M-7,-9.5 L3,-6.5 V7 L-7,9.5" {...st} />
+        <circle cx="0.5" cy="0.5" r="1.3" fill={c} stroke="none" />
+      </>);
+      break;
+    case "document":
+      body = (<>
+        <path d="M-7,-9.5 H2 L7,-4.5 V9.5 H-7 Z" {...st} />
+        <path d="M2,-9.5 V-4.5 H7" {...st} strokeWidth="1.4" />
+        <line x1="-4" y1="0" x2="4" y2="0" {...st} strokeWidth="1.4" />
+        <line x1="-4" y1="3.5" x2="4" y2="3.5" {...st} strokeWidth="1.4" />
+        <line x1="-4" y1="7" x2="1" y2="7" {...st} strokeWidth="1.4" />
+      </>);
+      break;
+    case "lab":
+      body = (<>
+        <line x1="-3.5" y1="-9.5" x2="3.5" y2="-9.5" {...st} />
+        <path d="M-2,-9.5 V-3.5 L-7.5,7 Q-8.5,9.5 -5.8,9.5 H5.8 Q8.5,9.5 7.5,7 L2,-3.5 V-9.5" {...st} />
+        <line x1="-4.5" y1="3" x2="4.5" y2="3" {...st} strokeWidth="1.6" />
+      </>);
+      break;
+    case "klok":
+      body = (<>
+        <circle cx="0" cy="0" r="9" {...st} />
+        <path d="M0,-4.5 V0 L4,2.5" {...st} />
+      </>);
+      break;
+    case "tandwiel":
+      body = (<>
+        <circle cx="0" cy="0" r="4.6" {...st} />
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
+          <line key={a} x1={7 * Math.cos((a * Math.PI) / 180)} y1={7 * Math.sin((a * Math.PI) / 180)}
+            x2={9.6 * Math.cos((a * Math.PI) / 180)} y2={9.6 * Math.sin((a * Math.PI) / 180)} {...st} strokeWidth="2.4" />
+        ))}
+        <circle cx="0" cy="0" r="7" {...st} strokeWidth="1.6" />
+      </>);
+      break;
+    case "schild":
+      body = (<>
+        <path d="M0,-9.5 L8,-6.5 V1 C8,5.5 4.5,8.8 0,10 C-4.5,8.8 -8,5.5 -8,1 V-6.5 Z" {...st} />
+        <path d="M-3,0 L-0.5,2.8 L3.5,-2.5" {...st} />
+      </>);
+      break;
+    case "server":
+      body = (<>
+        <rect x="-9" y="-9" width="18" height="8" rx="1.5" {...st} />
+        <rect x="-9" y="1" width="18" height="8" rx="1.5" {...st} />
+        <circle cx="-5.5" cy="-5" r="1.4" fill={c} stroke="none" />
+        <circle cx="-5.5" cy="5" r="1.4" fill={c} stroke="none" />
+        <line x1="1" y1="-5" x2="6" y2="-5" {...st} strokeWidth="1.5" />
+        <line x1="1" y1="5" x2="6" y2="5" {...st} strokeWidth="1.5" />
+      </>);
+      break;
+    case "database":
+      body = (<>
+        <ellipse cx="0" cy="-6.5" rx="8" ry="3" {...st} />
+        <path d="M-8,-6.5 V6.5 A8,3 0 0 0 8,6.5 V-6.5" {...st} />
+        <path d="M-8,0 A8,3 0 0 0 8,0" {...st} strokeWidth="1.5" />
+      </>);
+      break;
+    case "netwerk":
+      body = (<>
+        <line x1="0" y1="-6" x2="-6.5" y2="5.5" {...st} strokeWidth="1.5" />
+        <line x1="0" y1="-6" x2="6.5" y2="5.5" {...st} strokeWidth="1.5" />
+        <line x1="-6.5" y1="5.5" x2="6.5" y2="5.5" {...st} strokeWidth="1.5" />
+        <circle cx="0" cy="-6.5" r="3" fill="#FFF" {...st} />
+        <circle cx="-6.5" cy="5.5" r="3" fill="#FFF" {...st} />
+        <circle cx="6.5" cy="5.5" r="3" fill="#FFF" {...st} />
+      </>);
+      break;
+    case "cloud":
+      body = (<>
+        <path d="M-5.5,7 H5.5 A4.5,4.5 0 0 0 6.5,-1.8 A5.8,5.8 0 0 0 -4.5,-4 A4.8,4.8 0 0 0 -5.5,7 Z" {...st} />
+      </>);
+      break;
+    case "laptop":
+      body = (<>
+        <rect x="-8" y="-8.5" width="16" height="11" rx="1.2" {...st} />
+        <path d="M-11,6.5 H11 L8.8,3.2 H-8.8 Z" {...st} />
+      </>);
+      break;
+    case "printer":
+      body = (<>
+        <rect x="-6" y="-9.5" width="12" height="5" {...st} strokeWidth="1.6" />
+        <rect x="-9" y="-4.5" width="18" height="8" rx="1.5" {...st} />
+        <rect x="-5" y="3.5" width="10" height="6" {...st} strokeWidth="1.6" />
+        <circle cx="6" cy="-1" r="1.2" fill={c} stroke="none" />
+      </>);
+      break;
+    case "telefoon":
+      body = (<>
+        <rect x="-5" y="-9.5" width="10" height="19" rx="2.2" {...st} />
+        <line x1="-2" y1="-6.8" x2="2" y2="-6.8" {...st} strokeWidth="1.4" />
+        <circle cx="0" cy="6.4" r="1.3" fill={c} stroke="none" />
+      </>);
+      break;
+    case "ambulance":
+      body = (<>
+        <rect x="-9" y="-6" width="18" height="11" rx="1.5" {...st} />
+        <circle cx="-4.8" cy="7" r="2.1" {...st} strokeWidth="1.6" />
+        <circle cx="4.8" cy="7" r="2.1" {...st} strokeWidth="1.6" />
+        <line x1="-3" y1="-2.7" x2="-3" y2="2" {...st} strokeWidth="2.2" />
+        <line x1="-5.3" y1="-0.4" x2="-0.7" y2="-0.4" {...st} strokeWidth="2.2" />
+        <line x1="3" y1="-2.5" x2="6.5" y2="-2.5" {...st} strokeWidth="1.4" />
+      </>);
+      break;
+    case "pil":
+      body = (<>
+        <g transform="rotate(-45)">
+          <rect x="-8" y="-3.6" width="16" height="7.2" rx="3.6" {...st} />
+          <line x1="0" y1="-3.6" x2="0" y2="3.6" {...st} strokeWidth="1.5" />
+        </g>
+      </>);
+      break;
+    case "hart":
+      body = (<>
+        <path d="M0,8 C-8,2 -9.5,-4 -5.2,-7 C-2.2,-9 0,-6 0,-3.8 C0,-6 2.2,-9 5.2,-7 C9.5,-4 8,2 0,8 Z" {...st} />
+      </>);
+      break;
+    case "injectie":
+      body = (<>
+        <g transform="rotate(45)">
+          <rect x="-2.2" y="-7.5" width="4.4" height="10" {...st} strokeWidth="1.6" />
+          <line x1="0" y1="2.5" x2="0" y2="9.5" {...st} strokeWidth="1.6" />
+          <line x1="-3.8" y1="-7.5" x2="3.8" y2="-7.5" {...st} strokeWidth="1.6" />
+          <line x1="0" y1="-7.5" x2="0" y2="-10.5" {...st} strokeWidth="1.6" />
+        </g>
+      </>);
+      break;
+    case "microscoop":
+      body = (<>
+        <path d="M1.5,-9.5 L4.8,-6.2 L-1.5,1.5" {...st} />
+        <line x1="-5.5" y1="2.5" x2="3.5" y2="2.5" {...st} strokeWidth="1.6" />
+        <path d="M4.8,-6.2 C8.5,-0.5 7,5.8 0.5,8" {...st} strokeWidth="1.6" />
+        <line x1="-6.5" y1="9.5" x2="6.5" y2="9.5" {...st} />
+      </>);
+      break;
+    case "rolstoel":
+      body = (<>
+        <circle cx="-1.2" cy="3.8" r="5.6" {...st} />
+        <circle cx="6.4" cy="8.2" r="1.7" {...st} strokeWidth="1.5" />
+        <circle cx="-1.2" cy="-8" r="2.2" {...st} />
+        <path d="M-1.2,-5.5 V-2 H4 L6.4,6.3" {...st} />
+      </>);
+      break;
+    case "kar":
+      body = (<>
+        <path d="M-9,-9.5 H-6 L-4,3.5 H7.5" {...st} />
+        <circle cx="-1.5" cy="7.2" r="1.9" {...st} strokeWidth="1.6" />
+        <circle cx="5" cy="7.2" r="1.9" {...st} strokeWidth="1.6" />
+        <rect x="-3" y="-4.5" width="8.5" height="6" rx="0.8" {...st} strokeWidth="1.6" />
+      </>);
+      break;
+    case "kalender":
+      body = (<>
+        <rect x="-8" y="-7" width="16" height="16" rx="1.5" {...st} />
+        <line x1="-8" y1="-2.2" x2="8" y2="-2.2" {...st} strokeWidth="1.5" />
+        <line x1="-4" y1="-9.5" x2="-4" y2="-5" {...st} />
+        <line x1="4" y1="-9.5" x2="4" y2="-5" {...st} />
+        <rect x="1.5" y="1" width="3.6" height="3.6" fill={c} stroke="none" />
+      </>);
+      break;
+    case "euro":
+      body = (<>
+        <path d="M6.5,-6.5 A8.5,8.5 0 1 0 6.5,6.5" {...st} />
+        <line x1="-8.5" y1="-1.8" x2="2.5" y2="-1.8" {...st} strokeWidth="1.6" />
+        <line x1="-8.5" y1="1.8" x2="1.5" y2="1.8" {...st} strokeWidth="1.6" />
+      </>);
+      break;
+    case "grafiek":
+      body = (<>
+        <path d="M-8.5,-8.5 V8.5 H8.5" {...st} strokeWidth="1.6" />
+        <rect x="-5.5" y="2" width="3.2" height="6.5" fill={c} stroke="none" />
+        <rect x="-0.8" y="-2.5" width="3.2" height="11" fill={c} stroke="none" />
+        <rect x="3.9" y="-6.5" width="3.2" height="15" fill={c} stroke="none" />
+      </>);
+      break;
+    case "monitor":
+    default:
+      body = (<>
+        <rect x="-9.5" y="-9" width="19" height="13" rx="1.8" {...st} />
+        <path d="M-5,-5 L-7.5,-2.5 L-5,0" {...st} strokeWidth="1.6" />
+        <path d="M5,-5 L7.5,-2.5 L5,0" {...st} strokeWidth="1.6" />
+        <line x1="-1.4" y1="-5.5" x2="1.4" y2="0.5" {...st} strokeWidth="1.6" />
+        <line x1="0" y1="4" x2="0" y2="7.5" {...st} />
+        <line x1="-5" y1="7.5" x2="5" y2="7.5" {...st} />
+      </>);
+  }
+  return <g transform={`translate(${x},${y})`}>{body}</g>;
+}
+
+function DiagramSVG({ diagram, svgRef, scale = 1, onStepDbl, onNoteDragStart, onNoteResizeStart }) {
+  const L = useMemo(() => computeLayout(diagram), [diagram]);
+  const { xs, idx } = L;
+  const ink = "#1B3A47";
+  const lifeline = "#9DB4BE";
+
+  if (!diagram.actors.length) {
+    return (
+      <div style={{ padding: 48, textAlign: "center", color: "#6B8794", fontSize: 14 }}>
+        Voeg actoren toe om het diagram te laten verschijnen.
+      </div>
+    );
+  }
+
+  return (
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${L.width} ${L.height}`}
+      width={L.width * scale}
+      height={L.height * scale}
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ display: "block", background: "#FFFFFF" }}
+      fontFamily="'Segoe UI', system-ui, sans-serif"
+    >
+      <defs>
+        <marker id="m-sync" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto">
+          <path d="M0,0 L11,5 L0,10 Z" fill={ink} />
+        </marker>
+        <marker id="m-open" markerWidth="13" markerHeight="11" refX="10" refY="5.5" orient="auto">
+          <path d="M1,0.5 L11,5.5 L1,10.5" fill="none" stroke={ink} strokeWidth="1.6" />
+        </marker>
+      </defs>
+
+      {/* lifelines */}
+      {diagram.actors.map((a, i) => (
+        <line
+          key={"ll" + a.id}
+          x1={xs[i]} y1={L.TOP + L.HEAD_H}
+          x2={xs[i]} y2={L.height - 26}
+          stroke={lifeline} strokeWidth="1.4" strokeDasharray="5 5"
+        />
+      ))}
+
+      {/* activatiebalken */}
+      {L.bars.map((b, k) => {
+        const a = diagram.actors[b.actor];
+        const c = actorColor(a);
+        return (
+          <rect
+            key={"bar" + k}
+            x={xs[b.actor] - 6}
+            y={L.rowY(b.from) - 16}
+            width="12"
+            height={L.rowY(b.to) - L.rowY(b.from) + 30}
+            rx="3"
+            fill={c + "1E"}
+            stroke={c}
+            strokeWidth="1.2"
+          />
+        );
+      })}
+
+      {/* actor-koppen */}
+      {diagram.actors.map((a, i) => {
+        const meta = TYPE_META[a.type] || TYPE_META.systeem;
+        const c = actorColor(a);
+        return (
+          <g key={"h" + a.id}>
+            <rect
+              x={xs[i] - L.HEAD_W / 2} y={L.TOP}
+              width={L.HEAD_W} height={L.HEAD_H} rx="10"
+              fill="#FFFFFF" stroke={c} strokeWidth="2"
+            />
+            <rect
+              x={xs[i] - L.HEAD_W / 2} y={L.TOP}
+              width={L.HEAD_W} height={20} rx="10"
+              fill={c}
+            />
+            <rect x={xs[i] - L.HEAD_W / 2} y={L.TOP + 12} width={L.HEAD_W} height={8} fill={c} />
+            <text x={xs[i]} y={L.TOP + 14.5} textAnchor="middle" fontSize="10" fontWeight="700" fill="#FFFFFF" letterSpacing="0.8">
+              {meta.label.toUpperCase()}
+            </text>
+            <ActorGlyph glyph={actorGlyph(a)} color={c} x={xs[i]} y={L.TOP + 44} />
+            <text x={xs[i]} y={L.TOP + 74} textAnchor="middle" fontSize="13.5" fontWeight="700" fill={ink}>
+              {a.name.length > 20 ? a.name.slice(0, 19) + "…" : a.name}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* stappen */}
+      {diagram.steps.map((s, si) => {
+        const y = L.rowY(si);
+        const lines = (L.rows[si] && L.rows[si].lines) || [s.label];
+        const LH = L.LINE_H;
+        const num = (
+          <g key={"num" + s.id}
+            onDoubleClick={() => onStepDbl && onStepDbl(s.id)}
+            style={{ cursor: onStepDbl ? "pointer" : "default" }}>
+            <title>Dubbelklik om deze stap te bewerken</title>
+            <circle cx={26} cy={y} r="11" fill="#EEF4F6" stroke="#B9CCD4" />
+            <text x={26} y={y + 4} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#456472">{si + 1}</text>
+          </g>
+        );
+
+        if (s.kind === "note") {
+          const i = idx[s.actor];
+          if (i === undefined) return null;
+          
+          // custom dimensions or defaults
+          const w = s.width || 280;
+          const h = s.height || 100;
+          const nx = xs[i] + 12;
+          const ny = y - 22;
+          
+          // offsets from step data
+          const ox = (s.offsetX || 0);
+          const oy = (s.offsetY || 0);
+          
+          // note color
+          const noteColor = NOTE_COLORS.find((nc) => nc.bg === s.bgColor) || NOTE_COLORS[0];
+          
+          // alphabetic letter: count all notes up to this one
+          let noteLetterIdx = 0;
+          for (const step of diagram.steps) {
+            if (step.kind === "note") {
+              if (step.id === s.id) break;
+              noteLetterIdx++;
+            }
+          }
+          const noteLetter = String.fromCharCode(65 + noteLetterIdx);
+          // word-wrap text to fit width
+          const maxLineW = w - 32;
+          const wrappedLines = [];
+          lines.forEach((ln) => {
+            let current = "";
+            const words = ln.split(" ");
+            words.forEach((w) => {
+              const test = current ? current + " " + w : w;
+              if (textW(test, 13.5) <= maxLineW) {
+                current = test;
+              } else {
+                if (current) wrappedLines.push(current);
+                current = w;
+              }
+            });
+            if (current) wrappedLines.push(current);
+          });
+          
+          return (
+            <g key={s.id} transform={`translate(${ox}, ${oy})`}>
+              <defs>
+                <filter id={"shadow-" + s.id}>
+                  <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.12" />
+                </filter>
+              </defs>
+              {/* invisible drag hotspot (main body) */}
+              <rect
+                x={nx} y={ny} width={w} height={h}
+                rx="6" ry="6"
+                fill="transparent"
+                style={{ cursor: "grab", pointerEvents: "auto" }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const svg = svgRef.current;
+                  const rect = svg?.getBoundingClientRect();
+                  if (!rect) return;
+                  onNoteDragStart?.({
+                    stepId: s.id,
+                    startX: e.clientX - rect.left,
+                    startY: e.clientY - rect.top,
+                    startOx: ox,
+                    startOy: oy,
+                  });
+                }}
+              />
+              {/* note background box with dynamic color */}
+              <rect
+                x={nx} y={ny} width={w} height={h}
+                rx="6" ry="6"
+                fill={noteColor.bg} stroke={noteColor.border} strokeWidth="1.5"
+                filter={"url(#shadow-" + s.id + ")"}
+                pointerEvents="none"
+              />
+              {/* corner ornament */}
+              <path
+                d={`M${nx + w - 10},${ny} L${nx + w},${ny + 10}`}
+                fill="none" stroke={noteColor.border} strokeWidth="1.2"
+                opacity="0.6"
+                pointerEvents="none"
+              />
+              {/* text content (wrapped) with lighter weight */}
+              <text fontSize="13.5" fontWeight="400" fill={noteColor.text} fontFamily="system-ui, -apple-system, sans-serif" pointerEvents="none">
+                {wrappedLines.slice(0, Math.floor((h - 16) / 18.5)).map((ln, k) => (
+                  <tspan key={k} x={nx + 16} y={ny + 28 + k * 18.5}>{ln}</tspan>
+                ))}
+              </text>
+              {/* alphabetic badge (top-right) - double-click to edit */}
+              <g
+                style={{ cursor: "pointer", pointerEvents: "auto" }}
+                onDoubleClick={() => onStepDbl?.(s.id)}
+              >
+                <circle cx={nx + w - 12} cy={ny + 8} r="10" fill={noteColor.text} opacity="0.9" />
+                <text x={nx + w - 12} y={ny + 12} textAnchor="middle" fontSize="11" fontWeight="700" fill={noteColor.bg} pointerEvents="none">
+                  {noteLetter}
+                </text>
+              </g>
+              {/* resize handle (bottom-right) */}
+              <g
+                style={{ cursor: "se-resize", pointerEvents: "auto" }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const svg = svgRef.current;
+                  const rect = svg?.getBoundingClientRect();
+                  if (!rect) return;
+                  onNoteResizeStart?.({
+                    stepId: s.id,
+                    startX: e.clientX - rect.left,
+                    startY: e.clientY - rect.top,
+                    startW: w,
+                    startH: h,
+                  });
+                }}
+              >
+                <circle cx={nx + w - 6} cy={ny + h - 6} r="5" fill="#D4C4A8" opacity="0.7" />
+                <path d={`M${nx + w - 10},${ny + h - 2} l4,4 l2,-2`} stroke="#FEFDFB" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+              </g>
+            </g>
+          );
+        }
+
+        const i1 = idx[s.from], i2 = idx[s.to];
+        if (i1 === undefined || i2 === undefined) return num;
+        const isSelf = s.type === "self" || s.from === s.to;
+        const dashed = s.type === "return";
+        const marker = s.type === "sync" ? "url(#m-sync)" : "url(#m-open)";
+
+        if (isSelf) {
+          const x0 = xs[i1] + 6;
+          return (
+            <g key={s.id}>
+              {num}
+              <path
+                d={`M${x0},${y - 10} h46 a8,8 0 0 1 8,8 v6 a8,8 0 0 1 -8,8 h-44`}
+                fill="none" stroke={ink} strokeWidth="1.7"
+                strokeDasharray={dashed ? "6 4" : "none"}
+                markerEnd={marker}
+              />
+              <text fontSize="12.5" fontWeight="600" fill={ink}>
+                {lines.map((ln, k) => (
+                  <tspan key={k} x={x0 + 64} y={y + 3 - (lines.length - 1 - k) * LH}>{ln}</tspan>
+                ))}
+              </text>
+            </g>
+          );
+        }
+
+        const xA = xs[i1], xB = xs[i2];
+        const dir = xB > xA ? 1 : -1;
+        const x1 = xA + dir * 7;
+        const x2 = xB - dir * 9;
+        const cx = (xA + xB) / 2;
+        return (
+          <g key={s.id}>
+            {num}
+            <line
+              x1={x1} y1={y} x2={x2} y2={y}
+              stroke={ink} strokeWidth="1.7"
+              strokeDasharray={dashed ? "6 4" : "none"}
+              markerEnd={marker}
+            />
+            <text textAnchor="middle" fontSize="12.5" fontWeight="600" fill={ink}>
+              {lines.map((ln, k) => (
+                <tspan key={k} x={cx} y={y - 8 - (lines.length - 1 - k) * LH}>{ln}</tspan>
+              ))}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* einde lifelines */}
+      {diagram.actors.map((a, i) => (
+        <line key={"e" + a.id} x1={xs[i] - 9} y1={L.height - 26} x2={xs[i] + 9} y2={L.height - 26} stroke={lifeline} strokeWidth="2" />
+      ))}
+    </svg>
+  );
+}
+
+/* ============================================================
+   UI-bouwstenen
+   ============================================================ */
+const S = {
+  input: {
+    padding: "9px 12px", border: "1.5px solid #C8D8DE", borderRadius: 8,
+    fontSize: 13.5, color: "#1B3A47", background: "#FFF", outline: "none", width: "100%",
+    boxSizing: "border-box", fontFamily: "inherit",
+  },
+  select: {
+    padding: "9px 10px", border: "1.5px solid #C8D8DE", borderRadius: 8,
+    fontSize: 13, color: "#1B3A47", background: "#FFF", outline: "none", width: "100%",
+    boxSizing: "border-box", fontFamily: "inherit", cursor: "pointer",
+  },
+  btn: (variant = "primary") => ({
+    padding: "9px 16px", borderRadius: 8, fontSize: 13.5, fontWeight: 600,
+    cursor: "pointer", border: "none", fontFamily: "inherit", whiteSpace: "nowrap",
+    ...(variant === "primary" && { background: "#0E6E8C", color: "#FFF" }),
+    ...(variant === "ghost" && { background: "#EEF4F6", color: "#1B3A47" }),
+    ...(variant === "danger" && { background: "#FBE9E9", color: "#A33232" }),
+    ...(variant === "subtle" && { background: "transparent", color: "#456472", padding: "5px 5px", flexShrink: 0 }),
+  }),
+  card: {
+    background: "#FFF", border: "1px solid #DCE7EB", borderRadius: 14,
+    boxShadow: "0 1px 3px rgba(27,58,71,0.06)",
+  },
+  label: { fontSize: 11, fontWeight: 700, color: "#5A7682", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 6, display: "block" },
+};
+
+function Chip({ type }) {
+  const m = TYPE_META[type];
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 9px",
+      borderRadius: 999, background: m.soft, color: m.color, fontSize: 11.5, fontWeight: 700,
+    }}>
+      {m.icon} {m.label}
+    </span>
+  );
+}
+
+/* ============================================================
+   Editor
+   ============================================================ */
+function Editor({ initial, onSave, onBack, toast }) {
+  const [d, setD] = useState(initial);
+  const [dirty, setDirty] = useState(false);
+  const svgRef = useRef(null);
+  const noteLabelRefs = useRef({});
+
+  // formuliervelden voor nieuwe actor / stap
+  const [actorName, setActorName] = useState("");
+  const [actorType, setActorType] = useState("rol");
+  const [stepKind, setStepKind] = useState("message");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [msgType, setMsgType] = useState("sync");
+  const [label, setLabel] = useState("");
+  const [noteActor, setNoteActor] = useState("");
+  const [styleFor, setStyleFor] = useState(null);
+  const [flash, setFlash] = useState(null);
+  const [dragging, setDragging] = useState(null); // { stepId, startX, startY, startOx, startOy }
+  const [resizing, setResizing] = useState(null); // { stepId, startX, startY, startW, startH }
+  const stepRefs = useRef({});
+
+  useEffect(() => {
+    if (!dragging) return;
+    const handleMouseMove = (e) => {
+      const rect = svgRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const dx = e.clientX - rect.left - dragging.startX;
+      const dy = e.clientY - rect.top - dragging.startY;
+      updStep(dragging.stepId, { offsetX: dragging.startOx + dx, offsetY: dragging.startOy + dy });
+    };
+    const handleMouseUp = () => setDragging(null);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [dragging]);
+
+  useEffect(() => {
+    if (!resizing) return;
+    const handleMouseMove = (e) => {
+      const rect = svgRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const dx = e.clientX - rect.left - resizing.startX;
+      const dy = e.clientY - rect.top - resizing.startY;
+      const newW = Math.max(180, resizing.startW + dx);
+      const newH = Math.max(60, resizing.startH + dy);
+      updStep(resizing.stepId, { width: newW, height: newH });
+    };
+    const handleMouseUp = () => setResizing(null);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [resizing]);
+
+  const jumpToStep = (id) => {
+    const el = stepRefs.current[id];
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setFlash(id);
+    // als het een notitie is, focus op de label-input
+    setTimeout(() => {
+      const labelInput = noteLabelRefs.current[id];
+      if (labelInput) {
+        labelInput.focus();
+        labelInput.select();
+      }
+      setFlash(null);
+    }, 600);
+  };
+
+  const upd = (fn) => { setD((p) => { const n = fn({ ...p }); return n; }); setDirty(true); };
+
+  useEffect(() => {
+    if (d.actors.length) {
+      if (!from || !d.actors.find((a) => a.id === from)) setFrom(d.actors[0].id);
+      if (!to || !d.actors.find((a) => a.id === to)) setTo(d.actors[Math.min(1, d.actors.length - 1)].id);
+      if (!noteActor || !d.actors.find((a) => a.id === noteActor)) setNoteActor(d.actors[0].id);
+    }
+  }, [d.actors]); // eslint-disable-line
+
+  const addActor = () => {
+    const name = actorName.trim();
+    if (!name) return toast("Geef de actor een naam.");
+    upd((p) => ({ ...p, actors: [...p.actors, { id: uid(), name, type: actorType }] }));
+    setActorName("");
+  };
+
+  const updActor = (id, patch) =>
+    upd((p) => ({ ...p, actors: p.actors.map((a) => (a.id === id ? { ...a, ...patch } : a)) }));
+
+  const removeActor = (id) => {    upd((p) => ({
+      ...p,
+      actors: p.actors.filter((a) => a.id !== id),
+      steps: p.steps.filter((s) =>
+        s.kind === "note" ? s.actor !== id : s.from !== id && s.to !== id
+      ),
+    }));
+  };
+
+  const moveActor = (i, dir) => {
+    upd((p) => {
+      const a = [...p.actors];
+      const j = i + dir;
+      if (j < 0 || j >= a.length) return p;
+      [a[i], a[j]] = [a[j], a[i]];
+      return { ...p, actors: a };
+    });
+  };
+
+  const addStep = () => {
+    const text = label.trim();
+    if (!text) return toast("Geef een omschrijving van de actie of notitie.");
+    if (stepKind === "note") {
+      if (!noteActor) return toast("Kies een actor voor de notitie.");
+      upd((p) => ({ ...p, steps: [...p.steps, { id: uid(), kind: "note", actor: noteActor, label: text, offsetX: 0, offsetY: 0, width: 280, height: 100, bgColor: NOTE_COLORS[0].bg }] }));
+    } else {
+      if (!from || !to) return toast("Kies een verzender en ontvanger.");
+      const t = msgType === "self" || from === to ? "self" : msgType;
+      const realTo = t === "self" ? from : to;
+      upd((p) => ({ ...p, steps: [...p.steps, { id: uid(), kind: "message", from, to: realTo, type: t, label: text }] }));
+    }
+    setLabel("");
+  };
+
+  const updStep = (id, patch) =>
+    upd((p) => ({ ...p, steps: p.steps.map((s) => (s.id === id ? { ...s, ...patch } : s)) }));
+  const delStep = (id) => upd((p) => ({ ...p, steps: p.steps.filter((s) => s.id !== id) }));
+  const moveStep = (i, dir) =>
+    upd((p) => {
+      const a = [...p.steps];
+      const j = i + dir;
+      if (j < 0 || j >= a.length) return p;
+      [a[i], a[j]] = [a[j], a[i]];
+      return { ...p, steps: a };
+    });
+
+  const save = async () => {
+    const ok = await onSave({ ...d, updatedAt: Date.now() });
+    if (ok) { setDirty(false); toast("Diagram opgeslagen ✓"); }
+    else toast("Opslaan is niet gelukt — probeer opnieuw.");
+  };
+
+  const fileBase = () => (d.title || "diagram").replace(/\s+/g, "-").toLowerCase();
+
+  const exportSVG = () => {
+    if (!svgRef.current) return;
+    const blob = new Blob([svgRef.current.outerHTML], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileBase() + ".svg";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPNG = () => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const vb = svg.viewBox.baseVal;
+    const scale = 2; // 2x voor scherpte
+    const xml = new XMLSerializer().serializeToString(svg);
+    const url = URL.createObjectURL(new Blob([xml], { type: "image/svg+xml;charset=utf-8" }));
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = vb.width * scale;
+      canvas.height = vb.height * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((b) => {
+        const u = URL.createObjectURL(b);
+        const a = document.createElement("a");
+        a.href = u;
+        a.download = fileBase() + ".png";
+        a.click();
+        URL.revokeObjectURL(u);
+      }, "image/png");
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); toast("PNG-export is niet gelukt."); };
+    img.src = url;
+  };
+
+  const exportCode = () => {
+    const payload = { app: "sequence-diagram-studio", version: 1, exportedAt: new Date().toISOString(), diagram: d };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileBase() + ".seqdiagram.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("Diagram-code gedownload — importeerbaar via het dashboard.");
+  };
+
+  const exportPlantUML = () => {
+    const alias = {};
+    d.actors.forEach((a, i) => (alias[a.id] = "p" + (i + 1)));
+    const q = (s) => '"' + String(s).replace(/"/g, "'") + '"';
+    const kindOf = (t) => (t === "rol" || t === "actor" ? "actor" : t === "locatie" ? "entity" : t === "service" ? "control" : "participant");
+    const stereo = { afdeling: "<<Afdeling>>", rol: "<<Rol>>", systeem: "<<Systeem>>", locatie: "<<Locatie>>", service: "<<Service>>", actor: "<<Actor>>" };
+    const lines = ["@startuml"];
+    if (d.title) lines.push("title " + d.title);
+    lines.push("autonumber", "");
+    d.actors.forEach((a) => {
+      lines.push(`${kindOf(a.type)} ${q(a.name)} as ${alias[a.id]} ${stereo[a.type] || ""} ${actorColor(a)}`.trim());
+    });
+    lines.push("");
+    d.steps.filter((s) => !s.skip).forEach((s) => {
+      if (s.kind === "note") {
+        if (alias[s.actor]) lines.push(`note right of ${alias[s.actor]} : ${s.label}`);
+        return;
+      }
+      const a1 = alias[s.from], a2 = alias[s.to];
+      if (!a1 || !a2) return;
+      const arrow = s.type === "async" ? "->>" : s.type === "return" ? "-->" : "->";
+      lines.push(`${a1} ${arrow} ${s.type === "self" ? a1 : a2} : ${s.label}`);
+    });
+    lines.push("@enduml", "");
+    const url = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileBase() + ".puml";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("PlantUML-bestand gedownload (.puml).");
+  };
+
+  const actorById = (id) => d.actors.find((a) => a.id === id);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* kopbalk */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <button style={S.btn("ghost")} onClick={onBack}>← Dashboard</button>
+        <input
+          value={d.title}
+          onChange={(e) => upd((p) => ({ ...p, title: e.target.value }))}
+          style={{ ...S.input, fontSize: 17, fontWeight: 700, flex: 1, minWidth: 220 }}
+          placeholder="Titel van het diagram"
+        />
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: "#5A7682" }}>Download:</span>
+          <button style={S.btn("ghost")} onClick={exportSVG} title="Vectorafbeelding — oneindig schaalbaar">SVG</button>
+          <button style={S.btn("ghost")} onClick={exportPNG} title="Afbeelding voor Word, PowerPoint, e-mail">PNG</button>
+          <button style={S.btn("ghost")} onClick={exportCode} title="Diagram-code (JSON) — later weer importeerbaar">Code</button>
+          <button style={S.btn("ghost")} onClick={exportPlantUML} title="PlantUML-tekst (.puml) — voor gebruik in andere UML-tools">PlantUML</button>
+        </div>
+        <button style={{ ...S.btn("primary"), opacity: dirty ? 1 : 0.55 }} onClick={save}>
+          {dirty ? "Diagram opslaan" : "Opgeslagen"}
+        </button>
+      </div>
+      <input
+        value={d.description || ""}
+        onChange={(e) => upd((p) => ({ ...p, description: e.target.value }))}
+        style={{ ...S.input, fontSize: 13 }}
+        placeholder="Korte beschrijving (optioneel) — zichtbaar op het dashboard"
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(390px, 480px) 1fr", gap: 16, alignItems: "start" }}>
+        {/* ------- linker kolom: opbouw ------- */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* Actoren */}
+          <div style={{ ...S.card, padding: 16 }}>
+            <span style={S.label}>1 · Actoren</span>
+            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+              <input
+                style={S.input}
+                placeholder="Naam, bijv. Spoedeisende Hulp"
+                value={actorName}
+                onChange={(e) => setActorName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addActor()}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+              <select style={S.select} value={actorType} onChange={(e) => setActorType(e.target.value)}>
+                {Object.entries(TYPE_META).map(([k, v]) => (
+                  <option key={k} value={k}>{v.icon} {v.label}</option>
+                ))}
+              </select>
+              <button style={S.btn("primary")} onClick={addActor}>+ Toevoegen</button>
+            </div>
+            {d.actors.length === 0 && (
+              <div style={{ fontSize: 12.5, color: "#6B8794" }}>
+                Nog geen actoren. Voeg bijv. een afdeling (CSA), een rol (OK-medewerker), een locatie (steriele sluis) en een systeem (track &amp; trace) toe.
+              </div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {d.actors.map((a, i) => (
+                <React.Fragment key={a.id}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 8px", background: "#F6FAFB", borderRadius: 8 }}>
+                    <select
+                      style={{ ...S.select, width: 106, flexShrink: 0, borderColor: actorColor(a), color: actorColor(a), fontWeight: 700, fontSize: 11.5 }}
+                      value={a.type}
+                      onChange={(e) => updActor(a.id, { type: e.target.value })}
+                      title="Actortype wijzigen"
+                    >
+                      {Object.entries(TYPE_META).map(([k, v]) => (
+                        <option key={k} value={k}>{v.icon} {v.label}</option>
+                      ))}
+                    </select>
+                    <input
+                      style={{ ...S.input, flex: 1, minWidth: 80, fontWeight: 600 }}
+                      value={a.name}
+                      onChange={(e) => updActor(a.id, { name: e.target.value })}
+                      title="Naam wijzigen"
+                    />
+                    <button
+                      style={{ ...S.btn("subtle"), background: styleFor === a.id ? "#E3EDF0" : "transparent", borderRadius: 6 }}
+                      title="Pictogram & kleur"
+                      onClick={() => setStyleFor(styleFor === a.id ? null : a.id)}
+                    >🎨</button>
+                    <button style={S.btn("subtle")} title="Naar links" onClick={() => moveActor(i, -1)}>◀</button>
+                    <button style={S.btn("subtle")} title="Naar rechts" onClick={() => moveActor(i, 1)}>▶</button>
+                    <button style={{ ...S.btn("subtle"), color: "#A33232" }} title="Verwijderen" onClick={() => removeActor(a.id)}>✕</button>
+                  </div>
+                  {styleFor === a.id && (
+                    <div style={{ background: "#FFF", border: "1px solid #DCE7EB", borderRadius: 10, padding: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                        <span style={{ ...S.label, marginBottom: 0 }}>Pictogram</span>
+                        <button
+                          style={{ ...S.btn("ghost"), padding: "4px 10px", fontSize: 11.5, border: !a.icon ? `2px solid ${actorColor(a)}` : "2px solid transparent" }}
+                          onClick={() => updActor(a.id, { icon: undefined })}
+                          title="Standaard van het actortype"
+                        >Auto</button>
+                      </div>
+                      {GLYPH_GROUPS.map((grp) => (
+                        <div key={grp.label} style={{ marginBottom: 8 }}>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: "#8AA2AC", letterSpacing: 0.5, textTransform: "uppercase", margin: "2px 0 4px" }}>
+                            {grp.label}
+                          </div>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+                            {grp.items.map((g) => (
+                              <button
+                                key={g.key}
+                                title={g.label}
+                                onClick={() => updActor(a.id, { icon: g.key })}
+                                style={{
+                                  width: 34, height: 34, padding: 2, background: "#FFF", cursor: "pointer", borderRadius: 8,
+                                  border: actorGlyph(a) === g.key ? `2px solid ${actorColor(a)}` : "1.5px solid #DCE7EB",
+                                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                }}
+                              >
+                                <svg width="26" height="26" viewBox="-13 -13 26 26">
+                                  <ActorGlyph glyph={g.key} color={actorColor(a)} />
+                                </svg>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                      <div style={{ height: 4 }} />
+                      <span style={S.label}>Kleur-codering</span>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 7, alignItems: "center", marginBottom: 10 }}>
+                        <button
+                          style={{ ...S.btn("ghost"), padding: "5px 10px", fontSize: 11.5, border: !a.color ? "2px solid #13303C" : "2px solid transparent" }}
+                          onClick={() => updActor(a.id, { color: undefined })}
+                          title="Standaardkleur van het actortype"
+                        >Auto</button>
+                        {PALETTE_STD.map((p) => (
+                          <button
+                            key={p.hex}
+                            title={p.label}
+                            onClick={() => updActor(a.id, { color: p.hex })}
+                            style={{
+                              width: 24, height: 24, borderRadius: "50%", background: p.hex, cursor: "pointer",
+                              border: a.color === p.hex ? "3px solid #13303C" : "2px solid #FFF",
+                              boxShadow: "0 0 0 1px #C8D8DE",
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <span style={S.label}>Nictiz 5-lagenmodel</span>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 7, alignItems: "center" }}>
+                        {PALETTE_NICTIZ.map((p) => (
+                          <button
+                            key={p.hex}
+                            title={p.label}
+                            onClick={() => updActor(a.id, { color: p.hex })}
+                            style={{
+                              width: 24, height: 24, borderRadius: "50%", background: p.hex, cursor: "pointer",
+                              border: a.color === p.hex ? "3px solid #13303C" : "2px solid #FFF",
+                              boxShadow: "0 0 0 1px #C8D8DE",
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+
+          {/* Stap toevoegen */}
+          <div style={{ ...S.card, padding: 16 }}>
+            <span style={S.label}>2 · Stap toevoegen</span>
+            <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+              <button style={{ ...S.btn(stepKind === "message" ? "primary" : "ghost"), flex: 1 }} onClick={() => setStepKind("message")}>Bericht / actie</button>
+              <button style={{ ...S.btn(stepKind === "note" ? "primary" : "ghost"), flex: 1 }} onClick={() => setStepKind("note")}>Notitie</button>
+            </div>
+
+            {stepKind === "message" ? (
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                  <div>
+                    <span style={S.label}>Van</span>
+                    <select style={S.select} value={from} onChange={(e) => setFrom(e.target.value)} disabled={!d.actors.length}>
+                      {d.actors.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <span style={S.label}>Naar</span>
+                    <select style={S.select} value={msgType === "self" ? from : to} onChange={(e) => setTo(e.target.value)} disabled={!d.actors.length || msgType === "self"}>
+                      {d.actors.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <span style={S.label}>Berichttype</span>
+                  <select style={S.select} value={msgType} onChange={(e) => setMsgType(e.target.value)}>
+                    {Object.entries(MSG_META).map(([k, v]) => (
+                      <option key={k} value={k}>{v.label} — {v.hint}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            ) : (
+              <div style={{ marginBottom: 8 }}>
+                <span style={S.label}>Bij actor</span>
+                <select style={S.select} value={noteActor} onChange={(e) => setNoteActor(e.target.value)} disabled={!d.actors.length}>
+                  {d.actors.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                </select>
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                style={S.input}
+                placeholder={stepKind === "note" ? "Notitietekst…" : "Omschrijving, bijv. Patiëntgegevens opvragen"}
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addStep()}
+              />
+              <button style={S.btn("primary")} onClick={addStep} disabled={!d.actors.length}>+ Stap</button>
+            </div>
+          </div>
+
+          {/* Stappenlijst (bewerken) */}
+          <div style={{ ...S.card, padding: 16 }}>
+            <span style={S.label}>3 · Volgorde &amp; bewerken ({d.steps.length} stappen)</span>
+            {d.steps.length === 0 && (
+              <div style={{ fontSize: 12.5, color: "#6B8794" }}>Nog geen stappen toegevoegd.</div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {(() => { let k = 0; let noteIdx = 0; return d.steps.map((s, i) => { 
+                const myNum = s.skip ? null : (s.kind === "message" ? ++k : null);
+                const noteLetter = s.kind === "note" ? String.fromCharCode(65 + (noteIdx++)) : null;
+                return (
+                <div key={s.id} ref={(el) => (stepRefs.current[s.id] = el)}
+                  style={{ background: flash === s.id ? "#FFE2A0" : "#F6FAFB", opacity: s.skip ? 0.55 : 1, borderRadius: 10, padding: "10px 12px", transition: "background 0.6s" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
+                    <span style={{
+                      width: 22, height: 22, borderRadius: "50%", background: s.kind === "note" ? "#8AA2AC" : s.skip ? "#9FB3BC" : "#0E6E8C", color: "#FFF",
+                      fontSize: 11, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                    }}>{noteLetter || (myNum !== null ? myNum : "–")}</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 700, color: "#5A7682", flex: 1 }}>
+                      {s.kind === "note"
+                        ? `Notitie · ${actorById(s.actor)?.name ?? "?"}`
+                        : `${actorById(s.from)?.name ?? "?"} → ${actorById(s.to)?.name ?? "?"} · ${MSG_META[s.type]?.label ?? ""}`}
+                      {s.skip ? " · overgeslagen" : ""}
+                    </span>
+                    <button style={S.btn("subtle")} title={s.skip ? "Stap weer opnemen in het diagram" : "Stap overslaan (niet tekenen, blijft bewaard)"} onClick={() => updStep(s.id, { skip: !s.skip })}>{s.skip ? "↩" : "⏭"}</button>
+                    <button style={S.btn("subtle")} title="Omhoog" onClick={() => moveStep(i, -1)}>↑</button>
+                    <button style={S.btn("subtle")} title="Omlaag" onClick={() => moveStep(i, 1)}>↓</button>
+                    <button style={{ ...S.btn("subtle"), color: "#A33232" }} title="Verwijderen" onClick={() => delStep(s.id)}>✕</button>
+                  </div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {s.kind === "message" && (
+                      <>
+                        <select style={{ ...S.select, width: "auto", flex: 1, minWidth: 90 }} value={s.from}
+                          onChange={(e) => updStep(s.id, s.type === "self" ? { from: e.target.value, to: e.target.value } : { from: e.target.value })}>
+                          {d.actors.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                        <select style={{ ...S.select, width: "auto", flex: 1, minWidth: 90 }} value={s.to} disabled={s.type === "self"}
+                          onChange={(e) => updStep(s.id, { to: e.target.value })}>
+                          {d.actors.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                        <select style={{ ...S.select, width: "auto", flex: 1, minWidth: 100 }} value={s.type}
+                          onChange={(e) => {
+                            const t = e.target.value;
+                            updStep(s.id, t === "self" ? { type: t, to: s.from } : { type: t });
+                          }}>
+                          {Object.entries(MSG_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                        </select>
+                      </>
+                    )}
+                    {s.kind === "note" && (
+                      <>
+                        <select style={{ ...S.select, width: "auto", flex: 1 }} value={s.actor}
+                          onChange={(e) => updStep(s.id, { actor: e.target.value })}>
+                          {d.actors.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                          {NOTE_COLORS.map((nc) => (
+                            <button
+                              key={nc.bg}
+                              title={nc.label}
+                              onClick={() => updStep(s.id, { bgColor: nc.bg })}
+                              style={{
+                                width: 24, height: 24, borderRadius: 4, background: nc.bg,
+                                border: s.bgColor === nc.bg ? "2px solid #13303C" : "1.5px solid #C8D8DE",
+                                cursor: "pointer",
+                                boxShadow: "0 0 0 1px rgba(0,0,0,0.05)",
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                    <input style={{ ...S.input, flex: 2, minWidth: 140 }} value={s.label}
+                      ref={(el) => { if (s.kind === "note") noteLabelRefs.current[s.id] = el; }}
+                      onChange={(e) => updStep(s.id, { label: e.target.value })} />
+                  </div>
+                </div>
+              ); }); })()}
+            </div>
+          </div>
+        </div>
+
+        {/* ------- rechter kolom: live preview ------- */}
+        <div style={{ ...S.card, padding: 18, position: "sticky", top: 16 }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
+            <span style={S.label}>Live voorbeeld</span>
+            <span style={{ fontSize: 11.5, color: "#6B8794" }}>
+              ▸ dichte pijl = sync · open pijl = async · gestippeld = retour
+            </span>
+          </div>
+          <div style={{ overflow: "auto", borderRadius: 10, border: "1px solid #E5EEF1" }}>
+            <DiagramSVG diagram={{ ...d, steps: d.steps.filter((s) => !s.skip) }} svgRef={svgRef} onStepDbl={jumpToStep} onNoteDragStart={setDragging} onNoteResizeStart={setResizing} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   Dashboard
+   ============================================================ */
+function Dashboard({ diagrams, onNew, onOpen, onDelete, onDuplicate, onImport }) {
+  const fileRef = useRef(null);
+  const fmt = (t) =>
+    new Date(t).toLocaleString("nl-NL", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
+  const pickFile = (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => onImport(String(reader.result));
+    reader.readAsText(f);
+    e.target.value = "";
+  };
+
+  return (
+    <div>
+      <input type="file" accept=".json,application/json" ref={fileRef} style={{ display: "none" }} onChange={pickFile} />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 20, color: "#13303C" }}>Mijn sequence diagrammen</h2>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#5A7682" }}>
+            {diagrams.length === 0 ? "Nog geen diagrammen opgeslagen." : `${diagrams.length} diagram${diagrams.length === 1 ? "" : "men"} opgeslagen.`}
+          </p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button style={S.btn("ghost")} onClick={() => fileRef.current && fileRef.current.click()} title="Eerder gedownloade diagram-code (.json) inladen">
+            ⬆ Importeren
+          </button>
+          <button style={{ ...S.btn("primary"), fontSize: 14, padding: "11px 20px" }} onClick={onNew}>
+            + Nieuw diagram
+          </button>
+        </div>
+      </div>
+
+      {diagrams.length === 0 ? (
+        <div style={{ ...S.card, padding: 48, textAlign: "center" }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>🏥</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#1B3A47", marginBottom: 6 }}>Start je eerste diagram</div>
+          <div style={{ fontSize: 13, color: "#5A7682", maxWidth: 420, margin: "0 auto 16px" }}>
+            Breng een zorgproces in kaart: bijvoorbeeld een patiëntopname via de Spoedeisende Hulp,
+            met de triageverpleegkundige als rol en het EPD als systeem.
+          </div>
+          <button style={S.btn("primary")} onClick={onNew}>+ Nieuw diagram</button>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+          {diagrams
+            .slice()
+            .sort((a, b) => b.updatedAt - a.updatedAt)
+            .map((d) => (
+              <div key={d.id} style={{ ...S.card, padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ fontSize: 15.5, fontWeight: 700, color: "#13303C" }}>{d.title || "Zonder titel"}</div>
+                {d.description && (
+                  <div style={{ fontSize: 12.5, color: "#5A7682", lineHeight: 1.45 }}>
+                    {d.description.length > 120 ? d.description.slice(0, 119) + "…" : d.description}
+                  </div>
+                )}
+                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                  {[...new Set(d.actors.map((a) => a.type))].map((t) => <Chip key={t} type={t} />)}
+                  {d.actors.length === 0 && <span style={{ fontSize: 12, color: "#8AA2AC" }}>Geen actoren</span>}
+                </div>
+                <div style={{ fontSize: 12, color: "#6B8794" }}>
+                  {d.actors.length} actoren · {d.steps.length} stappen<br />
+                  Laatst gewijzigd: {fmt(d.updatedAt)}
+                </div>
+                <div style={{ display: "flex", gap: 7, marginTop: "auto" }}>
+                  <button style={{ ...S.btn("primary"), flex: 1 }} onClick={() => onOpen(d.id)}>Openen &amp; wijzigen</button>
+                  <button style={S.btn("ghost")} title="Dupliceren" onClick={() => onDuplicate(d.id)}>⧉</button>
+                  <button style={S.btn("danger")} title="Verwijderen" onClick={() => onDelete(d.id)}>🗑</button>
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   Hoofdcomponent
+   ============================================================ */
+function App() {
+  const [data, setData] = useState(null);
+  const [view, setView] = useState("dashboard");
+  const [currentId, setCurrentId] = useState(null);
+  const [toastMsg, setToastMsg] = useState("");
+  const [confirmDel, setConfirmDel] = useState(null);
+
+  useEffect(() => {
+    (async () => setData(await loadAll()))();
+  }, []);
+
+  const toast = (m) => {
+    setToastMsg(m);
+    setTimeout(() => setToastMsg(""), 2600);
+  };
+
+  const persist = async (next) => {
+    setData(next);
+    return saveAll(next);
+  };
+
+  if (!data) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F2F7F9", color: "#5A7682", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+        Diagrammen laden…
+      </div>
+    );
+  }
+
+  const current = data.diagrams.find((x) => x.id === currentId);
+
+  const handleSave = async (diagram) => {
+    const exists = data.diagrams.some((x) => x.id === diagram.id);
+    const next = {
+      ...data,
+      diagrams: exists
+        ? data.diagrams.map((x) => (x.id === diagram.id ? diagram : x))
+        : [...data.diagrams, diagram],
+    };
+    return persist(next);
+  };
+
+  const handleDelete = async (id) => {
+    await persist({ ...data, diagrams: data.diagrams.filter((x) => x.id !== id) });
+    setConfirmDel(null);
+    toast("Diagram verwijderd.");
+  };
+
+  const handleDuplicate = async (id) => {
+    const src = data.diagrams.find((x) => x.id === id);
+    if (!src) return;
+    const copy = { ...JSON.parse(JSON.stringify(src)), id: uid(), title: src.title + " (kopie)", createdAt: Date.now(), updatedAt: Date.now() };
+    await persist({ ...data, diagrams: [...data.diagrams, copy] });
+    toast("Diagram gedupliceerd.");
+  };
+
+  const handleImport = async (text) => {
+    try {
+      const obj = JSON.parse(text);
+      const dg = obj && obj.diagram ? obj.diagram : obj;
+      if (!dg || !Array.isArray(dg.actors) || !Array.isArray(dg.steps)) {
+        return toast("Dit bestand bevat geen geldige diagram-code.");
+      }
+      const actors = dg.actors
+        .filter((a) => a && a.id && typeof a.name === "string")
+        .map((a) => ({ id: String(a.id), name: a.name, type: TYPE_META[a.type] ? a.type : "systeem", icon: a.icon, color: a.color }));
+      const ids = new Set(actors.map((a) => a.id));
+      const steps = dg.steps
+        .filter((s) => s && s.id && typeof s.label === "string")
+        .filter((s) => (s.kind === "note" ? ids.has(String(s.actor)) : ids.has(String(s.from)) && ids.has(String(s.to))))
+        .map((s) =>
+          s.kind === "note"
+            ? { id: String(s.id), kind: "note", actor: String(s.actor), label: s.label, skip: !!s.skip, offsetX: s.offsetX || 0, offsetY: s.offsetY || 0, width: s.width || 280, height: s.height || 100, bgColor: s.bgColor || NOTE_COLORS[0].bg }
+            : { id: String(s.id), kind: "message", from: String(s.from), to: String(s.to), type: MSG_META[s.type] ? s.type : "sync", label: s.label, skip: !!s.skip }
+        );
+      const clean = {
+        id: uid(),
+        title: typeof dg.title === "string" && dg.title ? dg.title : "Geïmporteerd diagram",
+        description: typeof dg.description === "string" ? dg.description : "",
+        actors, steps,
+        createdAt: Date.now(), updatedAt: Date.now(),
+      };
+      await persist({ ...data, diagrams: [...data.diagrams, clean] });
+      toast(`"${clean.title}" geïmporteerd (${actors.length} actoren, ${steps.length} stappen).`);
+    } catch (e) {
+      toast("Importeren mislukt — is dit een .seqdiagram.json-bestand?");
+    }
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#F2F7F9", fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif", color: "#1B3A47" }}>
+      {/* app-kop */}
+            <header style={{ background: "#0F4C5C", padding: "12px 0" }}>
+        <div style={{ maxWidth: "100%", padding: "0 20px", display: "flex", alignItems: "center", gap: 16 }}>
+          <StridLogo height={54} />
+          <div>
+            <div style={{ color: "#FFF", fontWeight: 800, fontSize: 17, letterSpacing: 0.3 }}>Strid's Focus</div>
+            <div style={{ color: "#BFD9E0", fontSize: 11.5 }}>Sequence Diagram Studio · UML-procesflows voor de zorg · afdelingen, rollen, locaties &amp; systemen</div>
+          </div>
+        </div>
+      </header>
+
+      <main style={{ padding: "20px 20px 60px 20px" }}>
+        {view === "dashboard" && (
+          <Dashboard
+            diagrams={data.diagrams}
+            onNew={() => {
+              const d = emptyDiagram();
+              setCurrentId(d.id);
+              setData({ ...data, _draft: d });
+              setView("editor-new");
+            }}
+            onOpen={(id) => { setCurrentId(id); setView("editor"); }}
+            onDelete={(id) => setConfirmDel(id)}
+            onDuplicate={handleDuplicate}
+            onImport={handleImport}
+          />
+        )}
+
+        {view === "editor" && current && (
+          <Editor
+            key={current.id}
+            initial={JSON.parse(JSON.stringify(current))}
+            onSave={handleSave}
+            onBack={() => setView("dashboard")}
+            toast={toast}
+          />
+        )}
+
+        {view === "editor-new" && data._draft && (
+          <Editor
+            key={data._draft.id}
+            initial={data._draft}
+            onSave={async (dg) => {
+              const ok = await handleSave(dg);
+              if (ok) setView("editor"); // wordt nu een bestaand diagram
+              setCurrentId(dg.id);
+              return ok;
+            }}
+            onBack={() => setView("dashboard")}
+            toast={toast}
+          />
+        )}
+      </main>
+
+      {/* toast */}
+      {toastMsg && (
+        <div style={{
+          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+          background: "#13303C", color: "#FFF", padding: "11px 22px", borderRadius: 10,
+          fontSize: 13.5, fontWeight: 600, boxShadow: "0 6px 20px rgba(0,0,0,0.25)", zIndex: 50,
+        }}>
+          {toastMsg}
+        </div>
+      )}
+
+      {/* verwijder-bevestiging */}
+      {confirmDel && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(19,48,60,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60 }}>
+          <div style={{ ...S.card, padding: 24, maxWidth: 380, width: "90%" }}>
+            <div style={{ fontSize: 15.5, fontWeight: 700, marginBottom: 8 }}>Diagram verwijderen?</div>
+            <div style={{ fontSize: 13, color: "#5A7682", marginBottom: 18 }}>
+              “{data.diagrams.find((x) => x.id === confirmDel)?.title}” wordt definitief verwijderd. Dit kan niet ongedaan worden gemaakt.
+            </div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button style={S.btn("ghost")} onClick={() => setConfirmDel(null)}>Annuleren</button>
+              <button style={S.btn("danger")} onClick={() => handleDelete(confirmDel)}>Verwijderen</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

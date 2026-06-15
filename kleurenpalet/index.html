@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strid's Focus – Kleurenpalet-extractor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --purple:#b732ac; --blue:#67bde5; --orange:#d37337;
+  --lime:#9fbb3d; --green:#459a4f; --gray:#817870;
+  --bg:#fdf6f0; --surface:#ffffff; --text:#1f1a17;
+  --muted:#7a6f6a; --border:#ecddd5; --radius:16px;
+  --vf-bg:#15120f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+header{
+  background:linear-gradient(135deg,#fff8f4 0%,#fff3ee 100%);
+  border-bottom:1px solid var(--border);
+  padding:0 28px;display:flex;align-items:center;gap:16px;
+  height:76px;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(183,50,172,.08);
+}
+.logo-wrap{display:flex;align-items:center;gap:14px;flex-shrink:0;text-decoration:none;transition:opacity .15s}
+.logo-wrap:hover{opacity:.75}
+.logo-svg{width:46px;height:46px}
+.brand-name{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--purple);letter-spacing:-.01em}
+.brand-sub{font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
+.header-right{margin-left:auto;font-size:.85rem;color:var(--muted);font-weight:500}
+
+/* ── LAYOUT ── */
+.wrap{max-width:760px;margin:0 auto;padding:36px 20px 80px}
+.hero{margin-bottom:28px;text-align:center}
+.hero h1{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;margin-bottom:8px}
+.hero p{color:var(--muted);font-size:.95rem;max-width:480px;margin:0 auto}
+
+/* ── DROPZONE ── */
+.dropzone{
+  position:relative;border-radius:18px;background:var(--vf-bg);
+  min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;overflow:hidden;border:1px solid #2c2520;
+  transition:border-color .15s,transform .15s;margin-bottom:24px;
+}
+.dropzone:hover{transform:translateY(-2px)}
+.dropzone.dragover{border-color:var(--blue)}
+.dropzone input{display:none}
+.corner{position:absolute;width:34px;height:34px;border-color:var(--blue)}
+.corner.tl{top:18px;left:18px;border-top:3px solid;border-left:3px solid;border-radius:6px 0 0 0}
+.corner.tr{top:18px;right:18px;border-top:3px solid;border-right:3px solid;border-radius:0 6px 0 0}
+.corner.bl{bottom:18px;left:18px;border-bottom:3px solid;border-left:3px solid;border-radius:0 0 0 6px}
+.corner.br{bottom:18px;right:18px;border-bottom:3px solid;border-right:3px solid;border-radius:0 0 6px 0}
+.dz-content{text-align:center;color:#cfc8be;padding:0 24px}
+.dz-icon{font-size:2.6rem;margin-bottom:10px}
+.dz-title{font-size:1.05rem;font-weight:600;color:#fff;margin-bottom:4px}
+.dz-sub{font-size:.82rem;color:#9d958b}
+
+/* ── RESULT ── */
+.result{display:none}
+.result.visible{display:block}
+
+.preview-wrap{border-radius:18px;overflow:hidden;background:var(--vf-bg);margin-bottom:20px}
+.preview-wrap img{display:block;width:100%;max-height:380px;object-fit:contain;background:#000}
+
+.palette-strip{display:flex;border-radius:14px;overflow:hidden;margin-bottom:20px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.swatch{
+  flex:1;height:120px;display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:12px;cursor:pointer;position:relative;transition:flex .2s;
+}
+.swatch:hover{flex:1.4}
+.swatch-hex{font-family:'Space Mono',monospace;font-size:.78rem;font-weight:700;letter-spacing:.02em}
+
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--surface);border:1.5px solid var(--border);border-radius:99px;
+  padding:10px 22px;font-size:.88rem;font-weight:600;cursor:pointer;
+  color:var(--text);transition:all .15s;
+}
+.btn:hover{background:var(--purple);color:#fff;border-color:var(--purple)}
+
+.toast{
+  text-align:center;margin-top:12px;font-size:.82rem;color:var(--green);font-weight:600;
+  opacity:0;transition:opacity .25s;height:18px;
+}
+.toast.show{opacity:1}
+
+@media(max-width:560px){
+  .header-right{display:none}
+  .hero h1{font-size:1.5rem}
+  .palette-strip{flex-wrap:wrap}
+  .swatch{flex:1 0 33.3%;height:80px}
+  .swatch:hover{flex:1 0 33.3%}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo-wrap" href="../" title="Terug naar overzicht">
+    <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="222 66 384 434">
+      <defs>
+        <mask id="strid-cut" maskUnits="userSpaceOnUse" x="222" y="66" width="384" height="434">
+          <rect x="222" y="66" width="384" height="434" fill="#fff"/>
+          <g transform="translate(231.874,-130.394)" fill="#000" stroke="#000" stroke-width="2">
+            <g><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.1 467.18 L107.16 467.18 L0 574.33 L0 595.28 Z"/></g>
+            <g transform="translate(449.652,49.897) rotate(60.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.28 466.99 L107.31 466.99 L0 574.3 L0 595.28 Z"/></g>
+            <g transform="translate(630.717,463.005) rotate(120)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L127.64 467.63 L106.77 467.63 L0 574.41 L0 595.28 Z"/></g>
+            <g transform="translate(365.565,826.193) rotate(179.7)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L126.6 468.68 L105.9 468.68 L0 574.58 L0 595.28 Z"/></g>
+            <g transform="translate(-84.9791,778.186) rotate(-120.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.08 467.2 L107.14 467.2 L0 574.34 L0 595.28 Z"/></g>
+            <g transform="translate(-267.486,365.713) rotate(-60.2)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L129.27 466 L108.14 466 L0 574.14 L0 595.28 Z"/></g>
+          </g>
+        </mask>
+      </defs>
+      <g mask="url(#strid-cut)"><g transform="translate(231.874,-130.394)">
+        <g fill="#b732ac" stroke="#b732ac" stroke-width="0.25">
+          <path transform="translate(9.35432,-124.256)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#67bde5" stroke="#67bde5" stroke-width="0.25" transform="translate(449.652,49.897) rotate(60.1)">
+          <path transform="translate(9.21649,-124.257)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#d37337" stroke="#d37337" stroke-width="0.25" transform="translate(630.717,463.005) rotate(120)">
+          <path transform="translate(9.39314,-124.115)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#9fbb3d" stroke="#9fbb3d" stroke-width="0.25" transform="translate(365.565,826.193) rotate(179.7)">
+          <path transform="translate(9.34106,-124.265)" d="M0 595.28 L108.85 595.28 L20.62 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#459a4f" stroke="#459a4f" stroke-width="0.25" transform="translate(-84.9791,778.186) rotate(-120.1)">
+          <path transform="translate(9.35409,-124.421)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#817870" stroke="#817870" stroke-width="0.25" transform="translate(-267.486,365.713) rotate(-60.2)">
+          <path transform="translate(9.27977,-124.051)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+      </g></g>
+    </svg>
+    <div>
+      <div class="brand-name">Strid's Focus</div>
+      <div class="brand-sub">Kleurenpalet-extractor</div>
+    </div>
+  </a>
+  <div class="header-right">Haal de kleuren uit je foto</div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Welke kleuren zitten er in deze foto?</h1>
+    <p>Upload een foto en krijg direct het kleurenpalet: handig voor branding, moodboards of om bij een foto passende kleuren te kiezen.</p>
+  </div>
+
+  <div class="dropzone" id="dropzone">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+    <div class="dz-content">
+      <div class="dz-icon">🎨</div>
+      <div class="dz-title">Sleep een foto hierheen</div>
+      <div class="dz-sub">of klik om te bladeren</div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*">
+  </div>
+
+  <div class="result" id="result">
+    <div class="preview-wrap">
+      <img id="preview" alt="Voorbeeld">
+    </div>
+    <div class="palette-strip" id="palette"></div>
+    <div class="actions">
+      <button class="btn" id="copyAllBtn">📋 Kopieer alle hexcodes</button>
+      <button class="btn" id="resetBtn">↺ Andere foto</button>
+    </div>
+    <div class="toast" id="toast">Gekopieerd!</div>
+  </div>
+</div>
+
+<canvas id="workCanvas" style="display:none"></canvas>
+
+<script>
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const result = document.getElementById('result');
+const preview = document.getElementById('preview');
+const palette = document.getElementById('palette');
+const copyAllBtn = document.getElementById('copyAllBtn');
+const resetBtn = document.getElementById('resetBtn');
+const toast = document.getElementById('toast');
+const canvas = document.getElementById('workCanvas');
+const ctx = canvas.getContext('2d');
+
+let currentHexes = [];
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
+resetBtn.addEventListener('click', () => {
+  result.classList.remove('visible');
+  dropzone.style.display = 'flex';
+  fileInput.value = '';
+  if (preview.src) URL.revokeObjectURL(preview.src);
+});
+
+function handleFile(file){
+  if (!file.type.startsWith('image/')) return;
+  const url = URL.createObjectURL(file);
+  preview.src = url;
+  dropzone.style.display = 'none';
+  result.classList.add('visible');
+
+  const img = new Image();
+  img.onload = () => {
+    const hexes = extractPalette(img, 6);
+    renderPalette(hexes);
+  };
+  img.src = url;
+}
+
+// ══════════════════════════════════════════
+// KLEUREXTRACTIE (k-means clustering)
+// ══════════════════════════════════════════
+function extractPalette(img, k){
+  const size = 100; // downsample voor snelheid
+  const ratio = Math.min(size / img.naturalWidth, size / img.naturalHeight, 1);
+  canvas.width = Math.max(1, Math.round(img.naturalWidth * ratio));
+  canvas.height = Math.max(1, Math.round(img.naturalHeight * ratio));
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const pixels = [];
+  for (let i=0; i<data.length; i+=4){
+    if (data[i+3] < 128) continue; // sla (bijna) transparante pixels over
+    pixels.push([data[i], data[i+1], data[i+2]]);
+  }
+  if (!pixels.length) return [];
+
+  // initialiseer centroids met evenredig verspreide pixels
+  let centroids = [];
+  for (let i=0;i<k;i++){
+    centroids.push(pixels[Math.floor(pixels.length * (i+0.5) / k)].slice());
+  }
+
+  let assignments = new Array(pixels.length).fill(0);
+  for (let iter=0; iter<8; iter++){
+    // assign
+    for (let p=0;p<pixels.length;p++){
+      let best=0, bestDist=Infinity;
+      for (let c=0;c<k;c++){
+        const d = colorDist(pixels[p], centroids[c]);
+        if (d < bestDist){ bestDist=d; best=c; }
+      }
+      assignments[p]=best;
+    }
+    // update
+    const sums = Array.from({length:k}, () => [0,0,0,0]);
+    for (let p=0;p<pixels.length;p++){
+      const c = assignments[p];
+      sums[c][0]+=pixels[p][0]; sums[c][1]+=pixels[p][1]; sums[c][2]+=pixels[p][2]; sums[c][3]++;
+    }
+    for (let c=0;c<k;c++){
+      if (sums[c][3]>0){
+        centroids[c] = [sums[c][0]/sums[c][3], sums[c][1]/sums[c][3], sums[c][2]/sums[c][3]];
+      }
+    }
+  }
+
+  // sorteer op clustergrootte (grootste eerst)
+  const counts = new Array(k).fill(0);
+  assignments.forEach(a => counts[a]++);
+  const order = centroids.map((c,i)=>i).sort((a,b)=>counts[b]-counts[a]);
+
+  return order.map(i => rgbToHex(centroids[i]));
+}
+
+function colorDist(a, b){
+  const dr=a[0]-b[0], dg=a[1]-b[1], db=a[2]-b[2];
+  return dr*dr+dg*dg+db*db;
+}
+
+function rgbToHex(rgb){
+  return '#' + rgb.map(v => Math.round(v).toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+
+function luminance(hex){
+  const r = parseInt(hex.substr(1,2),16)/255;
+  const g = parseInt(hex.substr(3,2),16)/255;
+  const b = parseInt(hex.substr(5,2),16)/255;
+  return 0.299*r + 0.587*g + 0.114*b;
+}
+
+// ══════════════════════════════════════════
+// RENDER + COPY
+// ══════════════════════════════════════════
+function renderPalette(hexes){
+  currentHexes = hexes;
+  palette.innerHTML = hexes.map(hex => {
+    const textColor = luminance(hex) > 0.6 ? '#1f1a17' : '#ffffff';
+    return `<div class="swatch" style="background:${hex}" onclick="copyHex('${hex}')">
+      <span class="swatch-hex" style="color:${textColor}">${hex}</span>
+    </div>`;
+  }).join('');
+}
+
+function copyHex(hex){
+  navigator.clipboard.writeText(hex).then(showToast);
+}
+
+copyAllBtn.addEventListener('click', () => {
+  navigator.clipboard.writeText(currentHexes.join('\n')).then(showToast);
+});
+
+function showToast(){
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDSN in Ziekenhuizen - Nictiz Vijflagenmodel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        header {
+            background: linear-gradient(135deg, #0066cc 0%, #004499 100%);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        header p { font-size: 1.1em; opacity: 0.95; }
+        
+        section {
+            background: white;
+            padding: 30px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 5px solid #0066cc;
+        }
+        
+        h2 {
+            color: #0066cc;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        h3 {
+            color: #004499;
+            font-size: 1.3em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        
+        .diagram-container {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            border: 1px solid #ddd;
+        }
+        
+        svg { max-width: 100%; height: auto; }
+        
+        .layer-box {
+            background: white;
+            border: 2px solid #0066cc;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+        
+        .layer-box h4 {
+            color: #0066cc;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .pros, .cons {
+            background: #f0f4f8;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        
+        .pros h5 { color: #00aa44; }
+        .cons h5 { color: #aa4400; }
+        
+        ul { margin-left: 20px; }
+        li { margin: 8px 0; }
+        
+        .highlight {
+            background: #fffacd;
+            padding: 15px;
+            border-left: 4px solid #ffcc00;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .flow-item {
+            background: #e3f2fd;
+            border: 2px solid #0066cc;
+            padding: 15px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        
+        .arrow { font-size: 24px; color: #0066cc; }
+        
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+        
+        .timeline-item {
+            padding-left: 40px;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            background: #0066cc;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+        
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 16px;
+            width: 2px;
+            height: 40px;
+            background: #ccc;
+        }
+        
+        .timeline-item:last-child::after { display: none; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background: #e3f2fd;
+            color: #0066cc;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) { background: #f8fafc; }
+        
+        .key-points {
+            background: #f0f8ff;
+            border: 2px solid #0066cc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .key-points h4 {
+            color: #0066cc;
+            margin-bottom: 15px;
+        }
+        
+        .icon { font-size: 1.5em; }
+    </style>
+</head>
+<body>
+<a href="../" style="position:fixed;top:16px;left:16px;z-index:9999;background:#b732ac;color:#fff;padding:8px 14px;border-radius:99px;font-family:sans-serif;font-size:13px;text-decoration:none;backdrop-filter:blur(4px);display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.2)">← apps.strids-focus.nl</a>
+    <div class="container">
+        <header>
+            <h1>🏥 GDSN in Ziekenhuizen</h1>
+            <p>Global Data Synchronisation Network volgens het Nictiz Vijflagenmodel</p>
+        </header>
+
+        <!-- INTRO -->
+        <section>
+            <h2><span class="icon">📋</span> Wat is GDSN?</h2>
+            <p><strong>GDSN</strong> (Global Data Synchronisation Network) is het wereldwijde systeem voor standaardiseerde uitwisseling van productinformatiedata. In ziekenhuizen lost het een cruciaal probleem op:</p>
+            
+            <div class="highlight">
+                <strong>Het probleem:</strong> Ziekenhuizen ontvangen vandaag de dag honderden Excel-bestanden van leveranciers met productgegevens. Deze data is:
+                <ul>
+                    <li>❌ Inconsistent en dubbel</li>
+                    <li>❌ Handmatig ingevoerd (foutgevoelig)</li>
+                    <li>❌ Verouderd</li>
+                    <li>❌ Niet gestandaardiseerd</li>
+                </ul>
+                
+                <strong>De oplossing:</strong> GDSN centraliseert alle productdata in één datapool. Ziekenhuizen en registers tappen daar centraal uit.
+            </div>
+        </section>
+
+        <!-- NICTIZ VIJFLAGEN -->
+        <section>
+            <h2><span class="icon">🏗️</span> Het Nictiz Vijflagenmodel</h2>
+            <p>Het Nictiz-model beschrijft hoe informatieuitwisseling in de zorg structureel plaatsvindt. GDSN past hier perfect in:</p>
+            
+            <div class="diagram-container">
+                <svg viewBox="0 0 600 540" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Lagen met NICTIZ-kleuren -->
+                    <rect x="50" y="20" width="500" height="70" fill="#B732AC" stroke="#333" stroke-width="2" rx="4"/>
+                    <text x="300" y="50" text-anchor="middle" font-weight="bold" font-size="15" fill="white">Laag 1: Organisatiebeleid</text>
+                    <text x="300" y="68" text-anchor="middle" font-size="13" fill="white">(WHO, EN, ISO, GS1-regelgeving)</text>
+                    
+                    <rect x="50" y="110" width="500" height="70" fill="#67BDE5" stroke="#333" stroke-width="2" rx="4"/>
+                    <text x="300" y="140" text-anchor="middle" font-weight="bold" font-size="15" fill="#333">Laag 2: Zorgproces</text>
+                    <text x="300" y="158" text-anchor="middle" font-size="13" fill="#333">(GS1-semantiek, betekenis data)</text>
+                    
+                    <rect x="50" y="200" width="500" height="70" fill="#D37337" stroke="#333" stroke-width="2" rx="4"/>
+                    <text x="300" y="230" text-anchor="middle" font-weight="bold" font-size="15" fill="white">Laag 3: Informatie</text>
+                    <text x="300" y="248" text-anchor="middle" font-size="13" fill="white">(XML, EDI-formaten, data-structuur)</text>
+                    <text x="300" y="265" text-anchor="middle" font-size="11" fill="white" font-weight="bold" font-style="italic">← GDSN WERKT HIER ★</text>
+                    
+                    <rect x="50" y="290" width="500" height="70" fill="#9FBB3D" stroke="#333" stroke-width="2" rx="4"/>
+                    <text x="300" y="320" text-anchor="middle" font-weight="bold" font-size="15" fill="white">Laag 4: Applicatie</text>
+                    <text x="300" y="338" text-anchor="middle" font-size="13" fill="white">(Connectoren, APIs, integratie)</text>
+                    
+                    <rect x="50" y="380" width="500" height="70" fill="#459A4F" stroke="#333" stroke-width="2" rx="4"/>
+                    <text x="300" y="410" text-anchor="middle" font-weight="bold" font-size="15" fill="white">Laag 5: IT-infrastructuur</text>
+                    <text x="300" y="428" text-anchor="middle" font-size="13" fill="white">(SFTP, VPN, SSL/TLS, netwerk)</text>
+                    
+                    <!-- Pijlen -->
+                    <path d="M 300 90 L 300 110" stroke="#444" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+                    <path d="M 300 180 L 300 200" stroke="#444" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+                    <path d="M 300 270 L 300 290" stroke="#444" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+                    <path d="M 300 360 L 300 380" stroke="#444" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+                    
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <polygon points="0,0 10,5 0,10" fill="#444"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <h3>💡 Hoe GDSN in dit model past:</h3>
+            <table>
+                <tr>
+                    <th>Laag</th>
+                    <th>Nictiz Definitie</th>
+                    <th>GDSN Rol</th>
+                </tr>
+                <tr style="background: #B732AC; color: white;">
+                    <td><strong>1: Organisatiebeleid</strong></td>
+                    <td>Regelgeving, beleidsafstemming</td>
+                    <td>GS1-standaard, EUDAMED-regelgeving, NVZ/NFU-coördinatie</td>
+                </tr>
+                <tr style="background: #67BDE5;">
+                    <td><strong>2: Zorgproces</strong></td>
+                    <td>Betekenis data in klinische context</td>
+                    <td>GTIN = unieke product-ID, GLN = partij/leverancier, semantische codes</td>
+                </tr>
+                <tr style="background: #D37337; color: white;">
+                    <td><strong>3: Informatie</strong></td>
+                    <td>Technische datastructuur</td>
+                    <td><strong>★ GDSN DATAPOOL WERKT HIER ★</strong><br/>XML-schemas, EDI/EANCOM-formaten, centraal data repository</td>
+                </tr>
+                <tr style="background: #9FBB3D;">
+                    <td><strong>4: Applicatie</strong></td>
+                    <td>Connectoren en integratie</td>
+                    <td>APIs, SFTP-connectoren, ZIS/CMIS-integratie met live GDSN-data</td>
+                </tr>
+                <tr style="background: #459A4F; color: white;">
+                    <td><strong>5: IT-infrastructuur</strong></td>
+                    <td>Netwerk, beveiliging, transport</td>
+                    <td>VPN, SSL/TLS, beveiligde SFTP-verbindingen, server-infrastructuur</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- GDSN DATAPOOL ARCHITECTUUR -->
+        <section>
+            <h2><span class="icon">🔄</span> GDSN Datapool Architectuur</h2>
+            <p>Hoe het systeem in Nederland werkt:</p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Leveranciers -->
+                    <g>
+                        <rect x="20" y="20" width="120" height="60" fill="#e8f4f8" stroke="#0066cc" stroke-width="2" rx="4"/>
+                        <text x="80" y="55" text-anchor="middle" font-weight="bold" font-size="13">Leverancier A</text>
+                    </g>
+                    <g>
+                        <rect x="20" y="100" width="120" height="60" fill="#e8f4f8" stroke="#0066cc" stroke-width="2" rx="4"/>
+                        <text x="80" y="135" text-anchor="middle" font-weight="bold" font-size="13">Leverancier B</text>
+                    </g>
+                    <g>
+                        <rect x="20" y="180" width="120" height="60" fill="#e8f4f8" stroke="#0066cc" stroke-width="2" rx="4"/>
+                        <text x="80" y="215" text-anchor="middle" font-weight="bold" font-size="13">Leverancier N</text>
+                    </g>
+                    <text x="80" y="280" text-anchor="middle" font-size="11" fill="#666">Publiceren productdata</text>
+
+                    <!-- GDSN Datapool -->
+                    <g>
+                        <rect x="260" y="80" width="180" height="200" fill="#fff8e6" stroke="#ff6600" stroke-width="3" rx="4"/>
+                        <text x="350" y="110" text-anchor="middle" font-weight="bold" font-size="15">GS1 Data Source</text>
+                        <text x="350" y="130" text-anchor="middle" font-size="11" fill="#666">(GDSN Datapool NL)</text>
+                        
+                        <rect x="270" y="145" width="160" height="25" fill="#ffe6cc" stroke="#ff6600" stroke-width="1" rx="2"/>
+                        <text x="350" y="162" text-anchor="middle" font-size="11" font-weight="bold">Productdata</text>
+                        
+                        <rect x="270" y="175" width="160" height="25" fill="#ffe6cc" stroke="#ff6600" stroke-width="1" rx="2"/>
+                        <text x="350" y="192" text-anchor="middle" font-size="11" font-weight="bold">Medische hulpmiddelen</text>
+                        
+                        <rect x="270" y="205" width="160" height="25" fill="#ffe6cc" stroke="#ff6600" stroke-width="1" rx="2"/>
+                        <text x="350" y="222" text-anchor="middle" font-size="11" font-weight="bold">Care-producten</text>
+                    </g>
+
+                    <!-- Ziekenhuizen -->
+                    <g>
+                        <rect x="530" y="20" width="150" height="60" fill="#e8f4e8" stroke="#00aa44" stroke-width="2" rx="4"/>
+                        <text x="605" y="55" text-anchor="middle" font-weight="bold" font-size="13">Ziekenhuis A</text>
+                    </g>
+                    <g>
+                        <rect x="530" y="100" width="150" height="60" fill="#e8f4e8" stroke="#00aa44" stroke-width="2" rx="4"/>
+                        <text x="605" y="135" text-anchor="middle" font-weight="bold" font-size="13">Ziekenhuis B</text>
+                    </g>
+                    <g>
+                        <rect x="530" y="180" width="150" height="60" fill="#e8f4e8" stroke="#00aa44" stroke-width="2" rx="4"/>
+                        <text x="605" y="215" text-anchor="middle" font-weight="bold" font-size="13">Registers</text>
+                    </g>
+                    <text x="605" y="280" text-anchor="middle" font-size="11" fill="#666">Downloaden / Synchroniseren</text>
+
+                    <!-- Pijlen -->
+                    <path d="M 140 50 L 260 140" stroke="#0066cc" stroke-width="2" marker-end="url(#arrow1)" stroke-dasharray="5,5"/>
+                    <path d="M 140 130 L 260 160" stroke="#0066cc" stroke-width="2" marker-end="url(#arrow1)" stroke-dasharray="5,5"/>
+                    <path d="M 140 210 L 260 210" stroke="#0066cc" stroke-width="2" marker-end="url(#arrow1)" stroke-dasharray="5,5"/>
+
+                    <path d="M 440 140 L 530 50" stroke="#00aa44" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <path d="M 440 160 L 530 130" stroke="#00aa44" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <path d="M 440 210 L 530 210" stroke="#00aa44" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <!-- Datakwaliteit -->
+                    <rect x="260" y="290" width="180" height="90" fill="#f0f0f0" stroke="#999" stroke-width="1" rx="4"/>
+                    <text x="350" y="310" text-anchor="middle" font-weight="bold" font-size="12">GS1 Data Care</text>
+                    <text x="350" y="330" text-anchor="middle" font-size="10">Controleert data:</text>
+                    <text x="350" y="345" text-anchor="middle" font-size="10">• Volledigheid</text>
+                    <text x="350" y="360" text-anchor="middle" font-size="10">• Juistheid</text>
+                    <text x="350" y="375" text-anchor="middle" font-size="10">• Qualiteitsscores</text>
+
+                    <defs>
+                        <marker id="arrow1" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <polygon points="0,0 10,5 0,10" fill="#0066cc"/>
+                        </marker>
+                        <marker id="arrow2" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <polygon points="0,0 10,5 0,10" fill="#00aa44"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <h3>🔑 Kerncomponenten:</h3>
+            <div class="layer-box">
+                <h4>1️⃣ Leveranciers → GDSN</h4>
+                <p>Leveranciers publiceren hun productdata gestandaardiseerd naar <strong>GS1 Data Source</strong> (de datapool). In Nederland gebruiken zij de GLN <code>8712345013257</code> (GS1 Netherlands Healthcare).</p>
+            </div>
+
+            <div class="layer-box">
+                <h4>2️⃣ GS1 Data Source</h4>
+                <p>Centrale datapool met alle gestandaardiseerde productinformatie. Bevat medische hulpmiddelen, care-producten en hun attributen (gewicht, afmetingen, richtlijn, etc.).</p>
+            </div>
+
+            <div class="layer-box">
+                <h4>3️⃣ GS1 Data Care</h4>
+                <p>Kwaliteitsprogramma dat data valideert. Geeft ziekenhuizen EN leveranciers inzicht in datakwaliteitsscore (0-100%). Beiden kunnen issues rapporteren en verbeteren.</p>
+            </div>
+
+            <div class="layer-box">
+                <h4>4️⃣ Ziekenhuizen ← Downloaden</h4>
+                <p>Ziekenhuizen synchroniseren rechtstreeks met de datapool. Geen Excel meer—hun ZIS/CMIS/inkoopsystemen trekken actuele data direct uit GDSN.</p>
+            </div>
+        </section>
+
+        <!-- STROOM GDSN IN ZIEKENHUIS -->
+        <section>
+            <h2><span class="icon">🔀</span> Gegevensstroom binnen het Ziekenhuis (Laag 5)</h2>
+            <p>Zodra GDSN-data in het ziekenhuis beschikbaar is, stroomt het via systemen:</p>
+
+            <div class="flow-diagram">
+                <div class="flow-item">📥 GDSN Download</div>
+                <div class="arrow">→</div>
+                <div class="flow-item">🗂️ ZIS / CMIS</div>
+                <div class="arrow">→</div>
+                <div class="flow-item">💰 Inkoopsysteem</div>
+                <div class="arrow">→</div>
+                <div class="flow-item">🏥 Processen</div>
+            </div>
+
+            <h3>Praktijkscenario:</h3>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <strong>Maandagmorgen 09:00</strong> - Centraal magazijn van ziekenhuis 'Erasmus' downloadt GDSN-update
+                    <p style="margin-top: 5px; color: #666; font-size: 0.95em;">Alle nieuwe medische hulpmiddelen van hun gescreende leveranciers zijn nu in hun ZIS/CMIS</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <strong>09:15</strong> - Inkoopsysteem leest barcode van product
+                    <p style="margin-top: 5px; color: #666; font-size: 0.95em;">GDSN-data zorgt dat systeem automatisch weet: materiaalnummer, kostprijs, geldigheid, thermische eisen, etc.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <strong>09:30</strong> - Arts op operatiekamer scant product
+                    <p style="margin-top: 5px; color: #666; font-size: 0.95em;">ZIS toont: juist product? Niet verlopen? Goed gestockeerd? Dit alles komt uit GDSN.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <strong>Na ingreep</strong> - Audit trail compleet
+                    <p style="margin-top: 5px; color: #666; font-size: 0.95em;">Volledige traceerbaarheid dankzij consistente GDSN-ID's (GTIN, lot, batchnummer)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- VOORDELEN -->
+        <section>
+            <h2><span class="icon">✅</span> Voordelen van GDSN in Ziekenhuizen</h2>
+
+            <div class="pros">
+                <h5>🎯 Voor Ziekenhuizen:</h5>
+                <ul>
+                    <li><strong>Efficiëntie:</strong> Geen Excel-bestanden meer; automatische synchronisatie van 50.000+ medische hulpmiddelen</li>
+                    <li><strong>Veiligheid:</strong> Actuele, geverifieerde productdata. Minder risico op foute artikelen in operatiekamer</li>
+                    <li><strong>Transparantie:</strong> Datakwaliteitsscore per leverancier. Weten exact hoe betrouwbaar data is</li>
+                    <li><strong>Compliance:</strong> EUDAMED-integratie (EU-regelgeving). Dossiervorming wordt makkelijker</li>
+                    <li><strong>Kostenbesparing:</strong> Handmatige verwerking verdwijnt. Minder fouten = minder recalls</li>
+                </ul>
+            </div>
+
+            <div class="pros">
+                <h5>🏭 Voor Leveranciers:</h5>
+                <ul>
+                    <li><strong>Marktacces:</strong> Ziekenhuizen eisen straks GDSN-aansluiting (net als supermarkten)</li>
+                    <li><strong>Feedback:</strong> Zien direct via Data Care welke data ontbreekt of fout is</li>
+                    <li><strong>Benchmark:</strong> Datakwaliteit vergelijken met concurrenten</li>
+                    <li><strong>Automatisering:</strong> Eenmaal ingesteld, updates lopen semi-automatisch</li>
+                </ul>
+            </div>
+
+            <div class="cons">
+                <h5>⚠️ Huidige Uitdagingen:</h5>
+                <ul>
+                    <li><strong>Incomplete datapool:</strong> Nog niet alle leveranciers hebben volledig data opgevoerd (we zitten "aan de onderkant van de hockeystick")</li>
+                    <li><strong>Datakwaliteit variabel:</strong> Veel data is onvolledig of onjuist; Data Care scores zijn laag</li>
+                    <li><strong>Change management:</strong> Ziekenhuizen en leveranciers moeten processen aanpassen</li>
+                    <li><strong>Integratie:</strong> Niet alle ZIS/CMIS-systemen zijn gereed voor GDSN-integratie</li>
+                    <li><strong>Verantwoordelijkheid onduidelijk:</strong> Wie corrigeert data? Leverancier of ziekenhuis?</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- PRAKTISCHE IMPLEMENTATIE -->
+        <section>
+            <h2><span class="icon">🛠️</span> Praktische Implementatie in Nederland</h2>
+
+            <h3>🎯 Huidige Situatie (2025):</h3>
+            <ul>
+                <li>✅ Alle Nederlandse ziekenhuizen zijn aangesloten op GDSN</li>
+                <li>✅ Alle UMC's zijn koplopersprojecten (Erasmus MC, UMCNL, Frisius MC, etc.)</li>
+                <li>⏳ 50.000+ medische hulpmiddelen toegevoegd in 1 jaar</li>
+                <li>⚠️ Datapool is "verre van compleet"—ziekenhuizen geven prioriteiten aan leveranciers</li>
+            </ul>
+
+            <h3>📊 De Rollen:</h3>
+            <table>
+                <tr>
+                    <th>Organisatie</th>
+                    <th>Rol</th>
+                </tr>
+                <tr>
+                    <td><strong>GS1 Nederland</strong></td>
+                    <td>Beheerder van standaard; coördineert implementatie; neutrale partij</td>
+                </tr>
+                <tr>
+                    <td><strong>NVZ, NFU, IAZ</strong></td>
+                    <td>Vertegenwoordigen ziekenhuizen; bellen leveranciers; coördineren project</td>
+                </tr>
+                <tr>
+                    <td><strong>Ziekenhuizen</strong></td>
+                    <td>Downloaden data; valideren kwaliteit; geven feedback via Data Care</td>
+                </tr>
+                <tr>
+                    <td><strong>Leveranciers</strong></td>
+                    <td>Publiceren productdata; onderhouden attributen; corrigeren fouten</td>
+                </tr>
+            </table>
+
+            <h3>🚀 Werkwijze (stap voor stap):</h3>
+            <div class="layer-box">
+                <h4>Stap 1: Datapool Vullen</h4>
+                <p>Leveranciers voeren productgegevens EENMALIG in via GS1 EANCOM-formaat. Daarna: updates via dezelfde kanaal.</p>
+            </div>
+
+            <div class="layer-box">
+                <h4>Stap 2: Kwaliteitscontrole</h4>
+                <p>GS1 Data Care scant automatisch op compleetheid en juistheid. Score 0-100%. Beide partijen zien dit.</p>
+            </div>
+
+            <div class="layer-box">
+                <h4>Stap 3: Ziekenhuis-Synchronisatie</h4>
+                <p>ZIS/CMIS van ziekenhuis trekt data pull via API of SFTP. Gebeurt passief (ziekenhuis initieert).</p>
+            </div>
+
+            <div class="layer-box">
+                <h4>Stap 4: Feedback Loop</h4>
+                <p>Ziekenhuis ziet gaten in data? Rapporteert het via Data Care. Leverancier verbetert. Iedereen profiteert.</p>
+            </div>
+        </section>
+
+        <!-- GDSN POSITIE IN NICTIZ MODEL -->
+        <section>
+            <h2><span class="icon">🎯</span> GDSN's Exacte Positie in het Nictiz-model</h2>
+            <p>GDSN werkt primair op <strong>Laag 3 (Informatie)</strong>, maar raakt alle lagen:</p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 700 480" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Rechts: Lagen -->
+                    <g id="layers">
+                        <!-- Laag 1 -->
+                        <rect x="400" y="20" width="280" height="70" fill="#B732AC" stroke="#333" stroke-width="2" rx="4"/>
+                        <text x="540" y="45" text-anchor="middle" font-weight="bold" font-size="14" fill="white">1. Organisatiebeleid</text>
+                        <text x="540" y="62" text-anchor="middle" font-size="11" fill="white">(GS1-standaard)</text>
+                        
+                        <!-- Laag 2 -->
+                        <rect x="400" y="100" width="280" height="70" fill="#67BDE5" stroke="#333" stroke-width="2" rx="4"/>
+                        <text x="540" y="125" text-anchor="middle" font-weight="bold" font-size="14" fill="#333">2. Zorgproces</text>
+                        <text x="540" y="142" text-anchor="middle" font-size="11" fill="#333">(Semantische codes)</text>
+                        
+                        <!-- Laag 3 - GDSN HIER -->
+                        <rect x="400" y="180" width="280" height="70" fill="#D37337" stroke="#FF4500" stroke-width="4" rx="4"/>
+                        <text x="540" y="205" text-anchor="middle" font-weight="bold" font-size="14" fill="white">3. Informatie</text>
+                        <text x="540" y="222" text-anchor="middle" font-size="11" fill="white">★ GDSN DATAPOOL HIER ★</text>
+                        
+                        <!-- Laag 4 -->
+                        <rect x="400" y="260" width="280" height="70" fill="#9FBB3D" stroke="#333" stroke-width="2" rx="4"/>
+                        <text x="540" y="285" text-anchor="middle" font-weight="bold" font-size="14" fill="white">4. Applicatie</text>
+                        <text x="540" y="302" text-anchor="middle" font-size="11" fill="white">(ZIS/CMIS-connectoren)</text>
+                        
+                        <!-- Laag 5 -->
+                        <rect x="400" y="340" width="280" height="70" fill="#459A4F" stroke="#333" stroke-width="2" rx="4"/>
+                        <text x="540" y="365" text-anchor="middle" font-weight="bold" font-size="14" fill="white">5. IT-infrastructuur</text>
+                        <text x="540" y="382" text-anchor="middle" font-size="11" fill="white">(VPN, SFTP, SSL/TLS)</text>
+                    </g>
+                    
+                    <!-- Links: GDSN-componenten -->
+                    <g id="gdsn-components">
+                        <text x="50" y="30" font-weight="bold" font-size="13" fill="#D37337">GDSN COMPONENTEN:</text>
+                        
+                        <!-- Beleidsniveau -->
+                        <rect x="20" y="45" width="350" height="50" fill="#B732AC" opacity="0.2" stroke="#B732AC" stroke-width="2" rx="4"/>
+                        <text x="195" y="65" text-anchor="middle" font-weight="bold" font-size="11" fill="#333">GS1 Governance</text>
+                        <text x="195" y="80" text-anchor="middle" font-size="10" fill="#666">Standaard-setting, regelgeving</text>
+                        
+                        <!-- Semantiek -->
+                        <rect x="20" y="105" width="350" height="50" fill="#67BDE5" opacity="0.2" stroke="#67BDE5" stroke-width="2" rx="4"/>
+                        <text x="195" y="125" text-anchor="middle" font-weight="bold" font-size="11" fill="#333">GS1-Semantiek</text>
+                        <text x="195" y="140" text-anchor="middle" font-size="10" fill="#666">GTIN, GLN, attribute-codes</text>
+                        
+                        <!-- Data Pool (kern) -->
+                        <rect x="20" y="165" width="350" height="110" fill="#D37337" opacity="0.25" stroke="#FF4500" stroke-width="3" rx="4"/>
+                        <text x="195" y="185" text-anchor="middle" font-weight="bold" font-size="12" fill="#333">GS1 Data Source</text>
+                        <text x="195" y="202" text-anchor="middle" font-size="10" fill="#333">Centraal datapool</text>
+                        
+                        <!-- Subcomponenten -->
+                        <rect x="30" y="215" width="330" height="30" fill="white" stroke="#D37337" stroke-width="1" rx="2"/>
+                        <text x="195" y="235" text-anchor="middle" font-size="9" font-weight="bold" fill="#333">📦 Productdata + Medische hulpmiddelen</text>
+                        
+                        <rect x="30" y="250" width="330" height="30" fill="white" stroke="#D37337" stroke-width="1" rx="2"/>
+                        <text x="195" y="270" text-anchor="middle" font-size="9" font-weight="bold" fill="#333">✓ GS1 Data Care (Kwaliteitscontrole)</text>
+                        
+                        <!-- Applicatie -->
+                        <rect x="20" y="295" width="350" height="50" fill="#9FBB3D" opacity="0.2" stroke="#9FBB3D" stroke-width="2" rx="4"/>
+                        <text x="195" y="315" text-anchor="middle" font-weight="bold" font-size="11" fill="#333">Connectoren & Integratie</text>
+                        <text x="195" y="330" text-anchor="middle" font-size="10" fill="#666">SFTP, API, ZIS/CMIS-koppelingen</text>
+                        
+                        <!-- Infrastructuur -->
+                        <rect x="20" y="355" width="350" height="50" fill="#459A4F" opacity="0.2" stroke="#459A4F" stroke-width="2" rx="4"/>
+                        <text x="195" y="375" text-anchor="middle" font-weight="bold" font-size="11" fill="#333">Beveiligde Transport</text>
+                        <text x="195" y="390" text-anchor="middle" font-size="10" fill="#666">SSL/TLS, VPN, auditlog</text>
+                    </g>
+                    
+                    <!-- Pijlen van links naar rechts -->
+                    <path d="M 370 75 L 400 55" stroke="#D37337" stroke-width="2" marker-end="url(#arrowOrange)"/>
+                    <path d="M 370 135 L 400 135" stroke="#D37337" stroke-width="2" marker-end="url(#arrowOrange)"/>
+                    <path d="M 370 215 L 400 215" stroke="#FF4500" stroke-width="3" marker-end="url(#arrowRed)"/>
+                    <path d="M 370 320 L 400 295" stroke="#D37337" stroke-width="2" marker-end="url(#arrowOrange)"/>
+                    <path d="M 370 380 L 400 375" stroke="#D37337" stroke-width="2" marker-end="url(#arrowOrange)"/>
+                    
+                    <defs>
+                        <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <polygon points="0,0 10,5 0,10" fill="#D37337"/>
+                        </marker>
+                        <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <polygon points="0,0 10,5 0,10" fill="#FF4500"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <h3>🔑 Kerninzicht:</h3>
+            <p>GDSN is niet slechts een database—het <strong>integreert alle 5 lagen</strong>:</p>
+            <ul>
+                <li><strong>Laag 1 →</strong> Wie bepaalt de regels? GS1 (non-profit), samen met NFU/NVZ</li>
+                <li><strong>Laag 2 →</strong> Welke codes gebruiken we? GTIN (product), GLN (partij), ISO-standaarden</li>
+                <li><strong>Laag 3 →</strong> Hoe ziet data er uit? XML/EDI-formaten, de datapool zelf</li>
+                <li><strong>Laag 4 →</strong> Hoe integreren systemen? API's, SFTP-connectoren naar ZIS/CMIS</li>
+                <li><strong>Laag 5 →</strong> Veilig transport? SSL/TLS, VPN, auditlogs—allemaal handled door GDSN-infrastructuur</li>
+            </ul>
+        </section>
+
+            <div class="key-points">
+                <h4>🎓 Visie: Geïntegreerde Informatieuitwisseling</h4>
+                <p>GDSN is niet zomaar een technisch systeem—het is een compleet raamwerk dat alle 5 lagen van Nictiz dekt:</p>
+            </div>
+
+            <div class="layer-box">
+                <h4>Laag 1 → Laag 5 Integratie</h4>
+                <p><strong>Laag 1 (Beleid):</strong> GS1 non-profit, EU-regelgeving (EUDAMED)</p>
+                <p><strong>Laag 2 (Semantiek):</strong> GTIN-nummering zorgt dat "een chirurgische handschoen" overal hetzelfde betekent</p>
+                <p><strong>Laag 3 (Syntaxis):</strong> XML-structuren en EDI-formaten standaardiseren hoe data ér uitziet</p>
+                <p><strong>Laag 4 (Transport):</strong> SFTP, API's, VPN zeggen hoe data veilig van A naar B gaat</p>
+                <p><strong>Laag 5 (Applicaties):</strong> ZIS, CMIS, inkoopsystemen gebruiken GDSN-data in real time</p>
+            </div>
+
+            <h3>📈 De Voortgang (Hockeystick-model):</h3>
+            <div class="diagram-container">
+                <svg viewBox="0 0 600 350" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Assen -->
+                    <line x1="60" y1="280" x2="560" y2="280" stroke="#333" stroke-width="2"/>
+                    <line x1="60" y1="30" x2="60" y2="280" stroke="#333" stroke-width="2"/>
+                    
+                    <!-- Aslabels -->
+                    <text x="580" y="290" font-size="12" fill="#333">Tijd</text>
+                    <text x="30" y="150" font-size="12" fill="#333" transform="rotate(-90 30 150)">Data Coverage</text>
+                    
+                    <!-- Grid -->
+                    <line x1="60" y1="80" x2="560" y2="80" stroke="#eee" stroke-width="1"/>
+                    <line x1="60" y1="130" x2="560" y2="130" stroke="#eee" stroke-width="1"/>
+                    <line x1="60" y1="180" x2="560" y2="180" stroke="#eee" stroke-width="1"/>
+                    
+                    <!-- Hockeystick curve -->
+                    <path d="M 80 270 Q 200 260 280 220 Q 350 170 500 60" stroke="#0066cc" stroke-width="3" fill="none"/>
+                    
+                    <!-- Punten -->
+                    <circle cx="80" cy="270" r="4" fill="#0066cc"/>
+                    <circle cx="280" cy="220" r="4" fill="#0066cc"/>
+                    <circle cx="500" cy="60" r="4" fill="#0066cc"/>
+                    
+                    <!-- Labels -->
+                    <text x="80" y="310" text-anchor="middle" font-size="11" fill="#666">2024: Start</text>
+                    <text x="280" y="310" text-anchor="middle" font-size="11" fill="#666">2025: Versnelling</text>
+                    <text x="500" y="310" text-anchor="middle" font-size="11" fill="#666">2026+: Exponentieel</text>
+                    
+                    <!-- Annotaties -->
+                    <text x="120" y="250" font-size="10" fill="#00aa44" font-weight="bold">Nu hier</text>
+                    <path d="M 120 245 L 150 240" stroke="#00aa44" stroke-width="1.5" marker-end="url(#arrowSmall)"/>
+                    
+                    <defs>
+                        <marker id="arrowSmall" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+                            <polygon points="0,0 8,4 0,8" fill="#00aa44"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <p style="text-align: center; color: #666; font-size: 0.95em;">
+                <strong>Citaat NFU Manager René Dullaart:</strong> <em>"We zitten aan de onderkant van de bocht in de hockeystick. 
+                We zijn goed op weg, maar hebben nog een lange weg te gaan. De grootste stijging moet nog komen."</em>
+            </p>
+        </section>
+
+        <!-- TOEKOMST -->
+        <section>
+            <h2><span class="icon">🔮</span> Toekomst: GDSN als Standaard</h2>
+
+            <h3>🎯 Eindvisie:</h3>
+            <ul>
+                <li><strong>Transformatie:</strong> Ziekenhuizen stoppen met handmatige Excel-processen. GDSN wordt verplicht.</li>
+                <li><strong>Mondiale schaal:</strong> Niet alleen NL—wereldwijd. Leveranciers publiceren eenmaal, ziekenhuizen overal profiteren.</li>
+                <li><strong>EUDAMED-integratie:</strong> EU wil dat medische hulpmiddelen-dossiers via GDSN lopen. Regelwerking wordt aan elkaar gekoppeld.</li>
+                <li><strong>Real-time traceerbaarheid:</strong> Van fabriek tot operatiekamer met betrouwbare metadata.</li>
+                <li><strong>AI-driven datakwaliteit:</strong> Machine learning ziet patronen in data; suggereert automatische correcties.</li>
+            </ul>
+
+            <h3>⚡ Volgende Stappen (2025-2026):</h3>
+            <ul>
+                <li>✅ Datapool completeren (50.000+ → 150.000+ producten)</li>
+                <li>✅ Datakwaliteit verbeteren (gemiddelde score van 40% naar 80%+)</li>
+                <li>✅ Alle ERP-systemen koppelen (Epic, Cerner, SAP, etc.)</li>
+                <li>✅ Care-sector aansluiten (niet alleen ziekenhuizen)</li>
+                <li>✅ Wettelijk voorschrift opstellen: GDSN = voorwaarde voor leverantie</li>
+            </ul>
+
+            <div class="highlight">
+                <strong>🚀 De Vergelijking:</strong> GDSN voor ziekenhuizen is wat QR-codes en barcodescanning waren voor supermarkten in de jaren '90. 
+                Eerst chaos (allemaal handmatig). Dan automatisering. Nu: onmisbaar. Binnenkort: wettelijk verplicht.
+            </div>
+        </section>
+
+        <!-- SAMENVATTINGSTABEL -->
+        <section>
+            <h2><span class="icon">📚</span> Samenvattingstabel: GDSN in Context</h2>
+
+            <table>
+                <tr>
+                    <th>Aspect</th>
+                    <th>VOOR GDSN (Traditioneel)</th>
+                    <th>MET GDSN (Gestandaardiseerd)</th>
+                </tr>
+                <tr>
+                    <td><strong>Data-uitwisseling</strong></td>
+                    <td>Honderden Excel-bestanden per week</td>
+                    <td>Centraal datapool → real-time synchronisatie</td>
+                </tr>
+                <tr>
+                    <td><strong>Data-kwaliteit</strong></td>
+                    <td>Variabel; geen standaard</td>
+                    <td>Geverifieerd, score 0-100% zichtbaar</td>
+                </tr>
+                <tr>
+                    <td><strong>Implementatietijd</strong></td>
+                    <td>Maanden handwerk per product</td>
+                    <td>Seconden (API-pull) bij integratielaag 3-5</td>
+                </tr>
+                <tr>
+                    <td><strong>Foutmarge</strong></td>
+                    <td>Hoog (handmatig invoerfouten)</td>
+                    <td>Laag (stuctuur + automatische validatie)</td>
+                </tr>
+                <tr>
+                    <td><strong>Kosten</strong></td>
+                    <td>Hoog (handarbeid)</td>
+                    <td>Laag (automatisering) ✅</td>
+                </tr>
+                <tr>
+                    <td><strong>Veiligheid</strong></td>
+                    <td>Risico op verouderde/foute data in zorg</td>
+                    <td>Actueel, getraceerd, auditabel</td>
+                </tr>
+            </table>
+        </section>
+
+        <footer style="text-align: center; padding: 30px; color: #666; border-top: 2px solid #eee; margin-top: 40px;">
+            <p><strong>Bronnen:</strong> GS1 Nederland, NVZ, NFU, UMCNL, Zorg Inkoop Netwerk Nederland (2024-2025)</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">Dit document beschrijft de huidige state-of-play. GDSN evolueert snel.</p>
+        </footer>
+    </div>
+</body>
+</html>
