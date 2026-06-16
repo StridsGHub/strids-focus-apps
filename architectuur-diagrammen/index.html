@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strid's Focus – Architectuur-diagram generator</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --purple:#b732ac; --blue:#67bde5; --orange:#d37337;
+  --lime:#9fbb3d; --green:#459a4f; --gray:#817870;
+  --bg:#fdf6f0; --surface:#ffffff; --text:#404040;
+  --muted:#7a6f6a; --border:#ecddd5; --radius:16px;
+  --cat:#2e7d32;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+.brand-header{
+  background:linear-gradient(135deg,#fff8f4 0%,#fff3ee 100%);
+  border-bottom:1px solid var(--border);
+  padding:0 28px;display:flex;align-items:center;gap:14px;
+  height:76px;position:sticky;top:0;z-index:200;
+  box-shadow:0 2px 12px rgba(183,50,172,.08);
+  line-height:1.2;text-align:left;
+}
+.logo-wrap{display:flex;align-items:center;gap:14px;flex-shrink:0;text-decoration:none;transition:opacity .15s}
+.logo-wrap:hover{opacity:.75}
+.logo-svg{width:46px;height:46px}
+.brand-name{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--purple);letter-spacing:-.01em;line-height:1.2;margin:0;padding:0}
+.brand-sub{font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:1px 0 0 0;padding:0;line-height:1.2}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1100px;margin:0 auto;padding:28px 16px 60px}
+.hero{margin-bottom:20px;text-align:center}
+.hero h1{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;margin-bottom:8px;color:var(--cat)}
+.hero p{color:var(--muted);font-size:.92rem;max-width:680px;margin:0 auto}
+
+/* ── TOOLBAR ── */
+.toolbar{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px;margin-bottom:14px;
+}
+.toolbar .group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.toolbar .sep{width:1px;height:26px;background:var(--border);margin:0 4px}
+.tbtn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--bg);border:1.5px solid var(--border);border-radius:10px;
+  padding:7px 12px;font-size:.78rem;font-weight:600;cursor:pointer;color:var(--text);
+  transition:all .15s;font-family:'Inter',sans-serif;white-space:nowrap;
+}
+.tbtn:hover{border-color:var(--cat);color:var(--cat)}
+.tbtn.active{background:var(--cat);color:#fff;border-color:var(--cat)}
+.tbtn.danger:hover{border-color:#c0392b;color:#c0392b}
+.label-chk{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;color:var(--text);cursor:pointer}
+
+/* ── CANVAS ── */
+.canvas-wrap{
+  border:1px solid var(--border);border-radius:var(--radius);
+  overflow:auto;background:var(--surface);margin-bottom:14px;max-height:75vh;
+}
+svg#canvas{display:block;background:var(--surface);touch-action:none}
+.comp-box{cursor:grab;transition:filter .1s}
+.comp-box:active{cursor:grabbing}
+.comp-box.selected rect.body{stroke:var(--cat)!important;stroke-width:3px}
+.comp-icon{font-size:22px;pointer-events:none;dominant-baseline:central}
+.comp-label{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;pointer-events:none;dominant-baseline:central}
+.conn-line{stroke:#817870;stroke-width:2;fill:none;cursor:pointer}
+.conn-line.selected{stroke:var(--cat);stroke-width:3}
+.conn-label{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;fill:var(--text);pointer-events:none}
+.conn-label-bg{fill:var(--surface);opacity:.85}
+.layer-band{pointer-events:none}
+.layer-band-label{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;fill:#404040;pointer-events:none}
+
+/* ── PALETTE ── */
+.palette{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.ptype{
+  display:flex;align-items:center;gap:6px;border-radius:10px;border:1.5px solid var(--border);
+  padding:7px 12px;font-size:.78rem;font-weight:600;cursor:pointer;transition:transform .1s;
+  font-family:'Inter',sans-serif;
+}
+.ptype:hover{transform:translateY(-2px);box-shadow:0 3px 8px rgba(0,0,0,.1)}
+
+/* ── SIDE PANEL ── */
+.panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 18px;margin-bottom:14px;display:none;
+}
+.panel.visible{display:block}
+.panel h3{font-family:'Playfair Display',serif;font-size:1rem;color:var(--cat);margin-bottom:10px}
+.panel-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.panel-row label{font-size:.78rem;font-weight:600;color:var(--muted);min-width:70px}
+.panel-row input[type="text"]{
+  flex:1;min-width:140px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:.85rem;font-family:'Inter',sans-serif;
+}
+.panel-row input[type="color"]{width:40px;height:32px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer}
+.type-pick{display:flex;flex-wrap:wrap;gap:6px}
+.type-pick button{
+  border:1.5px solid var(--border);border-radius:8px;padding:5px 9px;font-size:.9rem;cursor:pointer;background:var(--bg);
+}
+.type-pick button.active{border-color:var(--cat);box-shadow:0 0 0 2px rgba(46,125,50,.15)}
+
+.note{
+  margin-top:8px;background:#f3f6e2;border:1px solid #e2ecc5;border-radius:var(--radius);
+  padding:14px 18px;font-size:.85rem;color:#404040;line-height:1.6;
+}
+
+@media(max-width:640px){
+  .hero h1{font-size:1.4rem}
+  .toolbar .sep{display:none}
+  .panel-row label{min-width:100%}
+}
+</style>
+</head>
+<body>
+
+<header class="brand-header">
+  <a class="logo-wrap" href="../" title="Terug naar overzicht">
+    <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="222 66 384 434">
+      <defs>
+        <mask id="strid-cut" maskUnits="userSpaceOnUse" x="222" y="66" width="384" height="434">
+          <rect x="222" y="66" width="384" height="434" fill="#fff"/>
+          <g transform="translate(231.874,-130.394)" fill="#000" stroke="#000" stroke-width="2">
+            <g><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.1 467.18 L107.16 467.18 L0 574.33 L0 595.28 Z"/></g>
+            <g transform="translate(449.652,49.897) rotate(60.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.28 466.99 L107.31 466.99 L0 574.3 L0 595.28 Z"/></g>
+            <g transform="translate(630.717,463.005) rotate(120)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L127.64 467.63 L106.77 467.63 L0 574.41 L0 595.28 Z"/></g>
+            <g transform="translate(365.565,826.193) rotate(179.7)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L126.6 468.68 L105.9 468.68 L0 574.58 L0 595.28 Z"/></g>
+            <g transform="translate(-84.9791,778.186) rotate(-120.1)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L128.08 467.2 L107.14 467.2 L0 574.34 L0 595.28 Z"/></g>
+            <g transform="translate(-267.486,365.713) rotate(-60.2)"><path transform="translate(603.44,473.898) rotate(105.609)" d="M0 595.28 L129.27 466 L108.14 466 L0 574.14 L0 595.28 Z"/></g>
+          </g>
+        </mask>
+      </defs>
+      <g mask="url(#strid-cut)"><g transform="translate(231.874,-130.394)">
+        <g fill="#b732ac" stroke="#b732ac" stroke-width="0.25">
+          <path transform="translate(9.35432,-124.256)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#67bde5" stroke="#67bde5" stroke-width="0.25" transform="translate(449.652,49.897) rotate(60.1)">
+          <path transform="translate(9.21649,-124.257)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#d37337" stroke="#d37337" stroke-width="0.25" transform="translate(630.717,463.005) rotate(120)">
+          <path transform="translate(9.39314,-124.115)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#9fbb3d" stroke="#9fbb3d" stroke-width="0.25" transform="translate(365.565,826.193) rotate(179.7)">
+          <path transform="translate(9.34106,-124.265)" d="M0 595.28 L108.85 595.28 L20.62 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#459a4f" stroke="#459a4f" stroke-width="0.25" transform="translate(-84.9791,778.186) rotate(-120.1)">
+          <path transform="translate(9.35409,-124.421)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+        <g fill="#817870" stroke="#817870" stroke-width="0.25" transform="translate(-267.486,365.713) rotate(-60.2)">
+          <path transform="translate(9.27977,-124.051)" d="M0 595.28 L108.85 595.28 L20.63 437.99 Z"/>
+          <path transform="translate(363.402,827.15) rotate(180)" d="M318.01 503.16 L333.54 513.37 A181.701 181.701 -180 0 0 354.16 356.36 L336.51 362.21 A163.109 163.109 0 0 1 318.01 503.16 Z"/>
+        </g>
+      </g></g>
+    </svg>
+    <div>
+      <div class="brand-name">Strid's Focus</div>
+      <div class="brand-sub">Architectuur-diagram generator</div>
+    </div>
+  </a>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Architectuur-diagram generator</h1>
+    <p>Bouw snel een component-/systeemdiagram: voeg blokken toe, versleep ze, verbind ze met lijnen en label alles naar wens. Zet desgewenst de vijf lagen van het Nictiz-model als achtergrond aan om je componenten daarop te positioneren. Diagrammen worden automatisch lokaal opgeslagen in je browser, en zijn te exporteren als SVG, PNG of JSON.</p>
+  </div>
+
+  <div class="palette" id="palette"></div>
+
+  <div class="toolbar">
+    <div class="group">
+      <label class="label-chk"><input type="checkbox" id="layerToggle"> 🧱 Toon 5-lagenmodel-achtergrond</label>
+    </div>
+    <div class="sep"></div>
+    <div class="group">
+      <button class="tbtn" id="connectBtn">🔗 Verbinding maken</button>
+      <button class="tbtn danger" id="deleteBtn">🗑️ Verwijder selectie</button>
+      <button class="tbtn danger" id="clearBtn">♻️ Alles wissen</button>
+    </div>
+    <div class="sep"></div>
+    <div class="group">
+      <button class="tbtn" id="exportSvgBtn">⬇️ SVG</button>
+      <button class="tbtn" id="exportPngBtn">⬇️ PNG</button>
+      <button class="tbtn" id="exportJsonBtn">⬇️ Opslaan (JSON)</button>
+      <button class="tbtn" id="importBtn">⬆️ Laden (JSON)</button>
+      <input type="file" id="importFile" accept=".json" style="display:none">
+    </div>
+  </div>
+
+  <div class="panel" id="panel"></div>
+
+  <div class="canvas-wrap">
+    <svg id="canvas" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <div class="note">
+    💡 <strong>Tips:</strong> klik op "🔗 Verbinding maken" en klik daarna twee blokken aan om ze te verbinden. Dubbelklik op een blok of verbinding om de naam te wijzigen. Klik op een blok/verbinding en gebruik "Verwijder selectie" (of de Delete-toets) om 'm te verwijderen. Sleep blokken met de muis of vinger.
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const TYPES = {
+  organisatie:     { icon:'🏛️', label:'Organisatie',        fill:'#eaf2dc', text:'#3a4a1f' },
+  zorgproces:      { icon:'🩺', label:'Zorgproces',          fill:'#d6e6b8', text:'#3a4a1f' },
+  informatie:      { icon:'📋', label:'Informatie',          fill:'#9fbb3d', text:'#2f3a16' },
+  applicatie:      { icon:'💻', label:'Applicatie/Systeem',  fill:'#7aa050', text:'#ffffff' },
+  infrastructuur:  { icon:'🖧', label:'IT-infrastructuur',   fill:'#459a4f', text:'#ffffff' },
+  koppelvlak:      { icon:'🔌', label:'Koppelvlak/API',      fill:'#67bde5', text:'#1f3a4a' },
+  database:        { icon:'🗄️', label:'Database',           fill:'#d37337', text:'#ffffff' },
+  actor:           { icon:'👤', label:'Actor/Gebruiker',     fill:'#817870', text:'#ffffff' },
+  generiek:        { icon:'⬜', label:'Generiek',            fill:'#ffffff', text:'#404040' },
+};
+
+const LAYERS5 = [
+  { name:'Organisatie',      fill:'#b732ac' },
+  { name:'Zorgproces',       fill:'#67bde5' },
+  { name:'Informatie',       fill:'#d37337' },
+  { name:'Applicatie',       fill:'#9fbb3d' },
+  { name:'IT-infrastructuur',fill:'#459a4f' },
+];
+
+const CANVAS_W = 1100, CANVAS_H = 800, LAYER_H = CANVAS_H / 5;
+const STORAGE_KEY = 'archdiagram-strids-focus-v1';
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let state = {
+  components: [],   // {id, x, y, w, h, type, label, fill, text, icon}
+  connections: [],  // {id, from, to, label}
+  showLayers: false,
+};
+let nextId = 1;
+let selected = null;          // {kind:'comp'|'conn', id}
+let connectMode = false;
+let connectFrom = null;
+let drag = null;              // {id, offsetX, offsetY}
+
+const svg = document.getElementById('canvas');
+const panel = document.getElementById('panel');
+const layerToggle = document.getElementById('layerToggle');
+
+// ══════════════════════════════════════════
+// PALETTE
+// ══════════════════════════════════════════
+const palette = document.getElementById('palette');
+Object.entries(TYPES).forEach(([key, t]) => {
+  const btn = document.createElement('div');
+  btn.className = 'ptype';
+  btn.style.background = t.fill;
+  btn.style.color = t.text;
+  btn.innerHTML = `<span>${t.icon}</span><span>${t.label}</span>`;
+  btn.onclick = () => addComponent(key);
+  palette.appendChild(btn);
+});
+
+// ══════════════════════════════════════════
+// COMPONENT / CONNECTION HELPERS
+// ══════════════════════════════════════════
+function addComponent(typeKey){
+  const t = TYPES[typeKey];
+  const offset = (state.components.length % 6) * 20;
+  state.components.push({
+    id: nextId++, x: 60 + offset, y: 60 + offset, w: 150, h: 64,
+    type: typeKey, label: t.label, fill: t.fill, text: t.text, icon: t.icon,
+  });
+  save(); render();
+}
+
+function getComp(id){ return state.components.find(c => c.id === id); }
+
+function center(c){ return { x: c.x + c.w/2, y: c.y + c.h/2 }; }
+
+// punt waar lijn van center naar (dx,dy) de rand van de box kruist
+function edgePoint(c, dx, dy){
+  const cx = c.x + c.w/2, cy = c.y + c.h/2;
+  if (dx === 0 && dy === 0) return {x:cx, y:cy};
+  const hw = c.w/2, hh = c.h/2;
+  const sx = dx !== 0 ? hw/Math.abs(dx) : Infinity;
+  const sy = dy !== 0 ? hh/Math.abs(dy) : Infinity;
+  const s = Math.min(sx, sy);
+  return { x: cx + dx*s, y: cy + dy*s };
+}
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function render(){
+  svg.setAttribute('viewBox', `0 0 ${CANVAS_W} ${state.showLayers ? CANVAS_H : 500}`);
+  svg.setAttribute('width', CANVAS_W);
+  svg.setAttribute('height', state.showLayers ? CANVAS_H : Math.max(500, maxCompBottom()+60));
+
+  let html = `<defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#817870"/>
+    </marker>
+    <marker id="arrow-sel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="${getComputedColor('--cat')}"/>
+    </marker>
+  </defs>`;
+
+  // 5-lagenmodel achtergrond
+  if (state.showLayers){
+    LAYERS5.forEach((l, i) => {
+      const y = i * LAYER_H;
+      html += `<g class="layer-band">
+        <rect x="0" y="${y}" width="${CANVAS_W}" height="${LAYER_H}" fill="${l.fill}" opacity="0.4"/>
+        <rect x="0" y="${y}" width="6" height="${LAYER_H}" fill="${l.fill}" opacity="0.85"/>
+        <text class="layer-band-label" x="14" y="${y+22}">${l.name}</text>
+      </g>`;
+      if (i>0) html += `<line x1="0" y1="${y}" x2="${CANVAS_W}" y2="${y}" stroke="#ffffff" stroke-width="2"/>`;
+    });
+  }
+
+  // verbindingen
+  state.connections.forEach(conn => {
+    const a = getComp(conn.from), b = getComp(conn.to);
+    if (!a || !b) return;
+    const ca = center(a), cb = center(b);
+    const p1 = edgePoint(a, cb.x-ca.x, cb.y-ca.y);
+    const p2 = edgePoint(b, ca.x-cb.x, ca.y-cb.y);
+    const isSel = selected && selected.kind==='conn' && selected.id===conn.id;
+    const marker = isSel ? 'arrow-sel' : 'arrow';
+    html += `<line class="conn-line ${isSel?'selected':''}" data-id="${conn.id}"
+      x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" marker-end="url(#${marker})"/>`;
+    if (conn.label){
+      const mx = (p1.x+p2.x)/2, my = (p1.y+p2.y)/2;
+      const w = conn.label.length * 6.2 + 10;
+      html += `<rect class="conn-label-bg" data-id="${conn.id}" x="${mx-w/2}" y="${my-9}" width="${w}" height="18" rx="4"/>
+        <text class="conn-label" data-id="${conn.id}" x="${mx}" y="${my+4}" text-anchor="middle">${esc(conn.label)}</text>`;
+    }
+  });
+
+  // componenten
+  state.components.forEach(c => {
+    const isSel = selected && selected.kind==='comp' && selected.id===c.id;
+    html += `<g class="comp-box ${isSel?'selected':''}" data-id="${c.id}" transform="translate(${c.x},${c.y})">
+      <rect class="body" width="${c.w}" height="${c.h}" rx="10" fill="${c.fill}" stroke="rgba(0,0,0,.08)" stroke-width="1.5"/>
+      <text class="comp-icon" x="14" y="${c.h/2}" fill="${c.text}">${c.icon}</text>
+      <text class="comp-label" x="44" y="${c.h/2}" fill="${c.text}">${esc(truncate(c.label, 16))}</text>
+    </g>`;
+  });
+
+  svg.innerHTML = html;
+  attachCanvasEvents();
+  renderPanel();
+}
+
+function maxCompBottom(){
+  return state.components.reduce((m,c) => Math.max(m, c.y+c.h), 0);
+}
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function truncate(s,n){ return s.length>n ? s.slice(0,n-1)+'…' : s; }
+function getComputedColor(varName){
+  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#2e7d32';
+}
+
+// ══════════════════════════════════════════
+// CANVAS INTERACTIE (drag, select, connect)
+// ══════════════════════════════════════════
+function svgPoint(evt){
+  const rect = svg.getBoundingClientRect();
+  const e = evt.touches ? evt.touches[0] : evt;
+  const vb = svg.viewBox.baseVal;
+  const x = (e.clientX - rect.left) * (vb.width / rect.width);
+  const y = (e.clientY - rect.top) * (vb.height / rect.height);
+  return {x, y};
+}
+
+function attachCanvasEvents(){
+  svg.querySelectorAll('.comp-box').forEach(g => {
+    const id = parseInt(g.dataset.id);
+    g.addEventListener('mousedown', e => startDrag(e, id));
+    g.addEventListener('touchstart', e => startDrag(e, id), {passive:false});
+    g.addEventListener('click', e => { e.stopPropagation(); onCompClick(id); });
+    g.addEventListener('dblclick', e => { e.stopPropagation(); renameComp(id); });
+  });
+  svg.querySelectorAll('.conn-line, .conn-label, .conn-label-bg').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); onConnClick(parseInt(el.dataset.id)); });
+    el.addEventListener('dblclick', e => { e.stopPropagation(); renameConn(parseInt(el.dataset.id)); });
+  });
+  svg.addEventListener('click', () => { selected = null; render(); });
+}
+
+function startDrag(e, id){
+  if (connectMode) return;
+  e.preventDefault(); e.stopPropagation();
+  const p = svgPoint(e);
+  const c = getComp(id);
+  drag = { id, offsetX: p.x - c.x, offsetY: p.y - c.y };
+  window.addEventListener('mousemove', onDrag);
+  window.addEventListener('mouseup', endDrag);
+  window.addEventListener('touchmove', onDrag, {passive:false});
+  window.addEventListener('touchend', endDrag);
+}
+function onDrag(e){
+  if (!drag) return;
+  e.preventDefault();
+  const p = svgPoint(e);
+  const c = getComp(drag.id);
+  c.x = Math.max(0, Math.min(CANVAS_W - c.w, p.x - drag.offsetX));
+  c.y = Math.max(0, p.y - drag.offsetY);
+  render();
+}
+function endDrag(){
+  if (drag) { save(); }
+  drag = null;
+  window.removeEventListener('mousemove', onDrag);
+  window.removeEventListener('mouseup', endDrag);
+  window.removeEventListener('touchmove', onDrag);
+  window.removeEventListener('touchend', endDrag);
+}
+
+function onCompClick(id){
+  if (connectMode){
+    if (connectFrom === null){
+      connectFrom = id;
+    } else if (connectFrom !== id){
+      state.connections.push({ id: nextId++, from: connectFrom, to: id, label: '' });
+      connectFrom = null;
+      connectMode = false;
+      document.getElementById('connectBtn').classList.remove('active');
+      save();
+    } else {
+      connectFrom = null; // zelfde blok: annuleer
+    }
+    render();
+    return;
+  }
+  selected = { kind:'comp', id };
+  render();
+}
+function onConnClick(id){
+  if (connectMode) return;
+  selected = { kind:'conn', id };
+  render();
+}
+
+function renameComp(id){
+  const c = getComp(id);
+  const v = prompt('Naam van dit blok:', c.label);
+  if (v !== null){ c.label = v.trim() || c.label; save(); render(); }
+}
+function renameConn(id){
+  const conn = state.connections.find(x=>x.id===id);
+  const v = prompt('Label voor deze verbinding (leeg = geen label):', conn.label || '');
+  if (v !== null){ conn.label = v.trim(); save(); render(); }
+}
+
+// ══════════════════════════════════════════
+// SIDE PANEL
+// ══════════════════════════════════════════
+function renderPanel(){
+  if (!selected){ panel.classList.remove('visible'); panel.innerHTML=''; return; }
+  panel.classList.add('visible');
+
+  if (selected.kind === 'comp'){
+    const c = getComp(selected.id);
+    if (!c){ selected=null; panel.classList.remove('visible'); return; }
+    panel.innerHTML = `
+      <h3>${c.icon} Blok bewerken</h3>
+      <div class="panel-row">
+        <label>Naam</label>
+        <input type="text" id="pLabel" value="${esc(c.label)}">
+        <label>Kleur</label>
+        <input type="color" id="pFill" value="${toHex(c.fill)}">
+      </div>
+      <div class="panel-row"><label>Type</label>
+        <div class="type-pick" id="pTypes"></div>
+      </div>
+    `;
+    document.getElementById('pLabel').oninput = e => { c.label = e.target.value; save(); renderQuiet(); };
+    document.getElementById('pFill').oninput = e => { c.fill = e.target.value; c.type='generiek'; save(); renderQuiet(); };
+    const pt = document.getElementById('pTypes');
+    Object.entries(TYPES).forEach(([key,t]) => {
+      const b = document.createElement('button');
+      b.textContent = t.icon;
+      b.title = t.label;
+      if (c.type===key) b.classList.add('active');
+      b.onclick = () => { c.type=key; c.fill=t.fill; c.text=t.text; c.icon=t.icon; save(); render(); };
+      pt.appendChild(b);
+    });
+  } else {
+    const conn = state.connections.find(x=>x.id===selected.id);
+    if (!conn){ selected=null; panel.classList.remove('visible'); return; }
+    panel.innerHTML = `
+      <h3>🔗 Verbinding bewerken</h3>
+      <div class="panel-row">
+        <label>Label</label>
+        <input type="text" id="pConnLabel" value="${esc(conn.label||'')}" placeholder="bv. HL7 FHIR, REST API, ...">
+      </div>
+    `;
+    document.getElementById('pConnLabel').oninput = e => { conn.label = e.target.value; save(); renderQuiet(); };
+  }
+}
+// her-render zonder de panel-focus te verstoren (tijdens typen)
+function renderQuiet(){
+  const active = document.activeElement;
+  const id = active ? active.id : null;
+  const selStart = active && active.selectionStart;
+  render();
+  if (id){
+    const el = document.getElementById(id);
+    if (el){ el.focus(); if (selStart!=null) el.setSelectionRange(selStart, selStart); }
+  }
+}
+function toHex(c){
+  if (c.startsWith('#')) return c.length===4 ? '#'+[...c.slice(1)].map(x=>x+x).join('') : c;
+  return '#ffffff';
+}
+
+// ══════════════════════════════════════════
+// TOOLBAR ACTIES
+// ══════════════════════════════════════════
+document.getElementById('connectBtn').onclick = function(){
+  connectMode = !connectMode;
+  connectFrom = null;
+  this.classList.toggle('active', connectMode);
+  if (connectMode){ selected=null; render(); }
+};
+
+document.getElementById('deleteBtn').onclick = deleteSelected;
+function deleteSelected(){
+  if (!selected) return;
+  if (selected.kind === 'comp'){
+    state.components = state.components.filter(c=>c.id!==selected.id);
+    state.connections = state.connections.filter(c=>c.from!==selected.id && c.to!==selected.id);
+  } else {
+    state.connections = state.connections.filter(c=>c.id!==selected.id);
+  }
+  selected = null; save(); render();
+}
+document.addEventListener('keydown', e => {
+  if ((e.key==='Delete' || e.key==='Backspace') && selected && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){
+    e.preventDefault(); deleteSelected();
+  }
+});
+
+document.getElementById('clearBtn').onclick = () => {
+  if (!confirm('Weet je zeker dat je het hele diagram wilt wissen?')) return;
+  state.components = []; state.connections = []; selected=null;
+  save(); render();
+};
+
+layerToggle.onchange = () => { state.showLayers = layerToggle.checked; save(); render(); };
+
+// ── Export SVG ──
+document.getElementById('exportSvgBtn').onclick = () => {
+  const clone = svg.cloneNode(true);
+  clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
+  clone.querySelectorAll('.comp-box.selected rect.body').forEach(r=>{ r.setAttribute('stroke','rgba(0,0,0,.08)'); r.setAttribute('stroke-width','1.5'); });
+  const xml = new XMLSerializer().serializeToString(clone);
+  download('architectuur-diagram.svg', 'image/svg+xml', xml);
+};
+
+// ── Export PNG ──
+document.getElementById('exportPngBtn').onclick = () => {
+  const clone = svg.cloneNode(true);
+  clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
+  const xml = new XMLSerializer().serializeToString(clone);
+  const svgBlob = new Blob([xml], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = () => {
+    const scale = 2;
+    const c = document.createElement('canvas');
+    c.width = svg.viewBox.baseVal.width * scale;
+    c.height = svg.viewBox.baseVal.height * scale;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,c.width,c.height);
+    ctx.drawImage(img, 0,0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    c.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'architectuur-diagram.png';
+      a.click();
+    });
+  };
+  img.src = url;
+};
+
+// ── Opslaan / laden JSON ──
+document.getElementById('exportJsonBtn').onclick = () => {
+  download('architectuur-diagram.json', 'application/json', JSON.stringify(state, null, 2));
+};
+document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
+document.getElementById('importFile').onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.components && data.connections){
+        state = data;
+        nextId = 1 + Math.max(0, ...state.components.map(c=>c.id), ...state.connections.map(c=>c.id));
+        layerToggle.checked = !!state.showLayers;
+        selected = null; save(); render();
+      } else { alert('Ongeldig bestand.'); }
+    } catch { alert('Kon bestand niet lezen.'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+};
+
+function download(filename, mime, content){
+  const blob = new Blob([content], {type:mime});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ══════════════════════════════════════════
+// PERSISTENTIE (localStorage)
+// ══════════════════════════════════════════
+function save(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+function load(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw){
+      const data = JSON.parse(raw);
+      if (data.components){
+        state = data;
+        nextId = 1 + Math.max(0, ...state.components.map(c=>c.id||0), ...state.connections.map(c=>c.id||0));
+      }
+    }
+  } catch {}
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+load();
+layerToggle.checked = !!state.showLayers;
+if (state.components.length === 0){
+  // voorbeeld-diagram om mee te starten
+  state.components = [
+    { id:1, x:60,  y:60,  w:170, h:64, type:'organisatie', label:'Ziekenhuis', fill:TYPES.organisatie.fill, text:TYPES.organisatie.text, icon:TYPES.organisatie.icon },
+    { id:2, x:320, y:60,  w:170, h:64, type:'applicatie',  label:'EPD', fill:TYPES.applicatie.fill, text:TYPES.applicatie.text, icon:TYPES.applicatie.icon },
+    { id:3, x:320, y:220, w:170, h:64, type:'koppelvlak',  label:'FHIR-koppelvlak', fill:TYPES.koppelvlak.fill, text:TYPES.koppelvlak.text, icon:TYPES.koppelvlak.icon },
+    { id:4, x:580, y:220, w:170, h:64, type:'database',    label:'Landelijke voorziening', fill:TYPES.database.fill, text:TYPES.database.text, icon:TYPES.database.icon },
+  ];
+  state.connections = [
+    { id:5, from:1, to:2, label:'gebruikt' },
+    { id:6, from:2, to:3, label:'' },
+    { id:7, from:3, to:4, label:'HL7 FHIR' },
+  ];
+  nextId = 8;
+}
+render();
+</script>
+</body>
+</html>
